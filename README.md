@@ -30,8 +30,8 @@ version it was built with is in its README.
 
 ## 🗂 Find an example
 
-Every top-level folder in this repository is one example, named after what it teaches. Open the
-folder and start with its `README.md`.
+Every folder at the top of this repository (apart from `.github`) is one example, named after what
+it teaches. Open the folder and start with its `README.md`.
 
 ## 📦 What you get in every folder
 
@@ -39,11 +39,11 @@ folder and start with its `README.md`.
   <tr>
     <td width="33%" valign="top">
       <h3>📖 A README</h3>
-      What the example shows, the controls, how each piece is built, and the order to tune it in.
+      What the example shows, the controls, how each piece is built, and what to tune.
     </td>
     <td width="33%" valign="top">
       <h3>🎮 A runnable project</h3>
-      Its own <code>project.godot</code>, input map, scenes and assets. Nothing shared, nothing to set up.
+      Its own <code>project.godot</code>, scenes and assets. Nothing shared, nothing to set up.
     </td>
     <td width="33%" valign="top">
       <h3>🧩 Code to take apart</h3>
