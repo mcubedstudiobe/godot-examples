@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://plush.gd" id="1_plush"]
+[ext_resource type="PackedScene" path="res://plush/godot_plush_model.glb" id="2_model"]
+
+[node name="Plush" type="Node3D"]
+script = ExtResource("1_plush")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
