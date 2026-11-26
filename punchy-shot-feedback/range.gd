@@ -191,8 +191,10 @@ func hit_target(direction: Vector3) -> void:
 		if stage < Stage.FINISH:  # Without the finishing layer the body drops where it stood.
 			target_visual.mesh.material_override = target_visual.tint  # in case a quick shot cut the flash short
 			target_visual.scale = Vector3.ONE
-			# Roll it around the way it faces, so it lands on its side with the X eyes in view.
-			target_visual.go_limp(direction * 0.8 + Vector3.UP * 0.5, -target_visual.global_basis.z * 6.0)
+			# Roll it around the way it faces, so it lands on its side with the X eyes in view, and
+			# turn it a little about the vertical so an arm doesn't land across its face.
+			target_visual.go_limp(direction * 0.8 + Vector3.UP * 0.5,
+					-target_visual.global_basis.z * 6.0 + Vector3.UP * 3.0)
 			return
 	if stage < Stage.HIT:
 		return

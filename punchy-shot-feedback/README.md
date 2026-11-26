@@ -70,8 +70,9 @@ Three ragdoll details that are easy to miss:
   arm being yanked.
 - **Choose how it lands.** A round body rolls until it finds a side, and a face in the
   dirt hides the X eyes. The spin goes around the way the target faces, so it tips onto
-  its side towards the camera, and extra angular damping on the hips and head stops it
-  rolling on once it is down.
+  its side towards the camera, with a little turn about the vertical so an arm doesn't
+  land across its face, and extra angular damping on the hips and head stops it rolling
+  on once it is down.
 
 ## Tuning order
 
