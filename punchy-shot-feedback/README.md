@@ -49,7 +49,7 @@ it stands instead of being thrown.
 | Tracer | A unit-depth box stretched from the muzzle to the hit. [tracer.gdshader](tracer.gdshader) burns white at the hit end, and a per-instance `tail` value eats the streak from the muzzle end while it thins over 60 ms. |
 | Particles | [demo_assets.gd](demo_assets.gd) builds the sparks, paint and smoke. Sparks and paint use **Align Y** so each streak points along its velocity. |
 | Characters | Tibo's [Godot Plush Character](https://github.com/gtibo/Godot-Plush-Character). [plush.gd](plush.gd) poses and tints one; the shooter holds one frame of `idle` with a few arm turns, the target keeps playing `idle`. The model imports at 1.3 m (Root Scale in the import settings), so no physics body is ever scaled. |
-| Ragdoll | [target.tscn](target.tscn) adds a `PhysicalBoneSimulator3D` named `Ragdoll` under the plush's `Skeleton3D`, with ten `PhysicalBone3D` bodies (hips, body, arms, legs) on physics layer 4. They collide with the world only, so rays, casings and each other pass through them. |
+| Ragdoll | [target.tscn](target.tscn) adds a `PhysicalBoneSimulator3D` named `Ragdoll` under the plush's `Skeleton3D`, with ten `PhysicalBone3D` bodies (hips, the round head, upper arms, forearms, thighs and shins) on physics layer 4. They collide with the world only, so rays, casings and each other pass through them. |
 | Hit reaction | `hit_target()` moves only the `Visual` node. The target's collision shape never moves, so the next shot's hitbox stays put. |
 
 Two ragdoll details that are easy to miss:
