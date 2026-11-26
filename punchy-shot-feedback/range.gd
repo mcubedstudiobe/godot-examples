@@ -27,7 +27,7 @@ const STARTING_HP := 3
 @onready var shooter: Plush = $Kick/Shooter
 @onready var kick_rest: Vector3 = kick.position
 @onready var barrel: MeshInstance3D = $Kick/Barrel
-@onready var barrel_rest: Vector3 = barrel.position
+var barrel_rest: Vector3
 @onready var camera: Camera3D = $Camera3D
 @onready var tracer: MeshInstance3D = $Tracer
 @onready var target: StaticBody3D = $Target
@@ -62,7 +62,27 @@ func _ready() -> void:
 	whiz = Assets.vary(WHIZ)
 	thud = Assets.vary(THUD)
 	ping = Assets.vary(PING)
+	hold_rifle()
 	reset_range()
+
+
+## Put the rifle in the shooter's hands. Both arms hang off the plush's head bone, so the
+## rifle, its muzzle and its casing port ride that bone too: when the shooter breathes or
+## flinches, hands and rifle move together, and the shots leave from where the rifle points.
+func hold_rifle() -> void:
+	var skeleton := shooter.skeleton
+	var grip := BoneAttachment3D.new()
+	grip.bone_name = &"DEF-head"
+	skeleton.add_child(grip)
+	# The attachment only follows the bone once the skeleton next updates, so work out
+	# where the bone is now and keep each part where the scene placed it.
+	var bone := skeleton.global_transform * skeleton.get_bone_global_pose(skeleton.find_bone(grip.bone_name))
+	for part: Node3D in [barrel, muzzle, eject]:
+		var placed := part.global_transform
+		part.get_parent().remove_child(part)
+		grip.add_child(part)
+		part.transform = bone.affine_inverse() * placed
+	barrel_rest = barrel.position
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -148,7 +168,8 @@ func play_shot(origin: Vector3, end: Vector3) -> void:
 	flash.show()
 	flash.rotation.z = randf() * TAU
 	flash.scale = Vector3.ONE * randf_range(0.85, 1.15)
-	barrel.position = barrel_rest + Vector3.BACK * 0.08
+	# Slide the rifle back along its own length; its parent is the bone, not the range.
+	barrel.position = barrel_rest + barrel.basis.z * 0.08
 	shot_tween.tween_callback(flash.hide).set_delay(0.04)
 	shot_tween.tween_property(barrel, "position", barrel_rest, 0.12).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 

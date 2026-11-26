@@ -1,7 +1,7 @@
 class_name PlushMotion
 extends SkeletonModifier3D
-## Keeps a plush alive on top of its held pose: a stance that nods along for the shooter, a dance
-## for the target, and blinking for both. A SkeletonModifier3D only adds to the pose for
+## Keeps a plush alive on top of its held pose: a steady, breathing stance for the shooter, a
+## dance for the target, and blinking for both. A SkeletonModifier3D only adds to the pose for
 ## this frame, so the held pose underneath never drifts. Plush switches it off when the
 ## ragdoll takes over.
 
@@ -37,14 +37,11 @@ func _process_modification_with_delta(delta: float) -> void:
 
 
 func _stance(skeleton: Skeleton3D, beat: float) -> void:
-	# A small bounce, a tapping foot, and a head that nods along and looks about. The
-	# rifle is not attached to the hands, so the arms and body only move a little.
-	_lift(skeleton, Vector3(0.0, absf(sin(beat * 0.5)) * 0.008, -flinch * 0.03))
-	_turn(skeleton, &"DEF-head", Vector3(absf(sin(beat * 0.5)) * 9.0 - flinch * 12.0,
-			sin(beat * 0.125) * 18.0, sin(beat * 0.25) * 7.0))
-	_turn(skeleton, &"DEF-thigh.R", Vector3(maxf(sin(beat), 0.0) * -10.0, 0.0, 0.0))
-	_turn(skeleton, &"DEF-shin.R", Vector3(maxf(sin(beat), 0.0) * 14.0, 0.0, 0.0))
-	_turn(skeleton, &"DEF-foot.R", Vector3(maxf(sin(beat), 0.0) * -18.0, 0.0, 0.0))
+	# Holds the rifle steady: a slow breath, and a flinch back and up on a shot. The rifle
+	# rides the head bone with both arms (range.gd), so the hands never leave it.
+	var breath := sin(beat * 0.125)
+	_lift(skeleton, Vector3(0.0, (breath * 0.5 + 0.5) * 0.012, -flinch * 0.03))
+	_turn(skeleton, &"DEF-head", Vector3(breath * 2.0 - flinch * 8.0, 0.0, 0.0))
 
 
 func _dance(skeleton: Skeleton3D, beat: float) -> void:

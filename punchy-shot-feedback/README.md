@@ -2,9 +2,9 @@
 
 A small desert shooting range in Godot 4.7 that adds seven layers of shot feedback
 one at a time, from "the health number went down" to a ragdoll knocked over by the
-finishing hit. The shooter nods along, looks around and taps a foot, the target dances
-until it is hit for the last time, and then its eyes turn into X's. One physics ray resolves each shot, and its hit point anchors the
-tracer, the target reaction, the paint and the impact sound.
+finishing hit. The shooter holds the rifle steady and breathes, the target dances until it
+is hit for the last time, and then its eyes turn into X's. One physics ray resolves each shot,
+and its hit point anchors the tracer, the target reaction, the paint and the impact sound.
 
 ## Run it
 
@@ -53,7 +53,8 @@ it stands instead of being thrown.
 | Tracer | A unit-depth box stretched from the muzzle to the hit. [tracer.gdshader](tracer.gdshader) burns white at the hit end, and a per-instance `tail` value eats the streak from the muzzle end while it thins over 60 ms. |
 | Particles | [demo_assets.gd](demo_assets.gd) builds the sparks, paint and smoke. Sparks and paint use **Align Y** so each streak points along its velocity. |
 | Characters | Tibo's [Godot Plush Character](https://github.com/gtibo/Godot-Plush-Character). [plush.gd](plush.gd) poses and tints one: a frame of `idle`, plus a few arm turns for the shooter. The model imports at 1.3 m (Root Scale in the import settings), so no physics body is ever scaled. |
-| Motion | [plush_motion.gd](plush_motion.gd) is a `SkeletonModifier3D` that adds to the held pose every frame: a small bounce, a tapping foot and a nodding, looking-around head for the shooter (its hands stay on the rifle), a dance for the target, and a blink for both. A shot at layer 4 and up makes the shooter flinch and squint. |
+| Motion | [plush_motion.gd](plush_motion.gd) is a `SkeletonModifier3D` that adds to the held pose every frame: a slow breath for the shooter, a dance for the target, and a blink for both. A shot at layer 4 and up makes the shooter flinch and squint. |
+| Holding the rifle | The plush's arms hang off its head bone, so `hold_rifle()` in [range.gd](range.gd) moves the rifle, the `Muzzle` and the casing port onto a `BoneAttachment3D` on that bone. Breathing and the recoil flinch move hands and rifle together, and each shot leaves from where the rifle points. The barrel kick slides along the rifle's own axis, because its parent is now the bone. |
 | Eyes | Both eyes sample one square of the plush texture, so [plush.gdshader](plush.gdshader) can redraw it: a lid of body colour for a blink, or a white eye with a black X once the target is down. |
 | Ragdoll | [target.tscn](target.tscn) adds a `PhysicalBoneSimulator3D` named `Ragdoll` under the plush's `Skeleton3D`, with ten `PhysicalBone3D` bodies (hips, the round head, upper arms, forearms, thighs and shins) on physics layer 4. They collide with the world only, so rays, casings and each other pass through them. |
 | Hit reaction | `hit_target()` moves only the `Visual` node. The target's collision shape never moves, so the next shot's hitbox stays put. |
@@ -90,5 +91,4 @@ Three ragdoll details that are easy to miss:
 
 - Godot Plush Character by Tibo, MIT licence: [plush/license.md](plush/license.md).
 - Sounds: public domain (CC0), with sources and authors in [sounds/CREDITS.md](sounds/CREDITS.md).
-- The layered-feedback idea comes from a reel by Egor (@vasilev.yegor).
 - Everything else in this folder: MIT, see the repository [LICENSE](../LICENSE).

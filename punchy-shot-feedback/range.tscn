@@ -611,11 +611,11 @@ mesh = SubResource("Mesh_mesa")
 [node name="Kick" type="Node3D" parent="."]
 
 [node name="Shooter" parent="Kick" instance=ExtResource("4_plush")]
-transform = Transform3D(-0.17365, 0, 0.98481, 0, 1, 0, -0.98481, 0, -0.17365, 0, 0, 0)
+transform = Transform3D(-0.17365, 0, 0.98481, 0, 1, 0, -0.98481, 0, -0.17365, 0.3, 0, 0.15)
 bone_turns = Dictionary[StringName, Vector3]({&"DEF-upper_arm.R": Vector3(30, 0, 20), &"DEF-upper_arm.L": Vector3(40, 0, 0)})
 
 [node name="Barrel" type="MeshInstance3D" parent="Kick"]
-position = Vector3(0.18, 0.7, -0.51)
+position = Vector3(0.14, 0.55, -0.58)
 mesh = SubResource("Mesh_receiver")
 
 [node name="Tube" type="MeshInstance3D" parent="Kick/Barrel"]
@@ -643,7 +643,7 @@ position = Vector3(0, -0.035, -0.02)
 mesh = SubResource("Mesh_accent")
 
 [node name="Muzzle" type="Marker3D" parent="."]
-position = Vector3(0.18, 0.72, -0.84)
+position = Vector3(0.14, 0.57, -0.91)
 
 [node name="Flash" type="Node3D" parent="Muzzle"]
 visible = false
@@ -669,7 +669,7 @@ light_energy = 2.0
 omni_range = 1.5
 
 [node name="Eject" type="Marker3D" parent="."]
-position = Vector3(0.42, 0.77, -0.55)
+position = Vector3(0.38, 0.62, -0.62)
 
 [node name="Tracer" type="MeshInstance3D" parent="."]
 visible = false
