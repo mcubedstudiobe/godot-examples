@@ -1,6 +1,6 @@
 class_name PlushMotion
 extends SkeletonModifier3D
-## Keeps a plush alive on top of its held pose: a ready stance for the shooter, a dance
+## Keeps a plush alive on top of its held pose: a stance that nods along for the shooter, a dance
 ## for the target, and blinking for both. A SkeletonModifier3D only adds to the pose for
 ## this frame, so the held pose underneath never drifts. Plush switches it off when the
 ## ragdoll takes over.
@@ -37,9 +37,11 @@ func _process_modification_with_delta(delta: float) -> void:
 
 
 func _stance(skeleton: Skeleton3D, beat: float) -> void:
-	# A small bounce on every other beat and a tapping foot. Only the hips move the
-	# upper body, and only a little, so the hands stay on the rifle.
+	# A small bounce, a tapping foot, and a head that nods along and looks about. The
+	# rifle is not attached to the hands, so the arms and body only move a little.
 	_lift(skeleton, Vector3(0.0, absf(sin(beat * 0.5)) * 0.008, -flinch * 0.03))
+	_turn(skeleton, &"DEF-head", Vector3(absf(sin(beat * 0.5)) * 9.0 - flinch * 12.0,
+			sin(beat * 0.125) * 18.0, sin(beat * 0.25) * 7.0))
 	_turn(skeleton, &"DEF-thigh.R", Vector3(maxf(sin(beat), 0.0) * -10.0, 0.0, 0.0))
 	_turn(skeleton, &"DEF-shin.R", Vector3(maxf(sin(beat), 0.0) * 14.0, 0.0, 0.0))
 	_turn(skeleton, &"DEF-foot.R", Vector3(maxf(sin(beat), 0.0) * -18.0, 0.0, 0.0))
