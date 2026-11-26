@@ -56,7 +56,7 @@ body_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12470339, 0)
 mass = 1.5
 friction = 0.9
 linear_damp = 0.1
-angular_damp = 1.5
+angular_damp = 6.0
 bone_name = "DEF-hips"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Model/Rig/Skeleton3D/Ragdoll/Hips" unique_id=1436297538]
@@ -71,7 +71,7 @@ body_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.9604645e-08, 0.34677312,
 mass = 3.0
 friction = 0.9
 linear_damp = 0.1
-angular_damp = 1.5
+angular_damp = 6.0
 bone_name = "DEF-head"
 joint_constraints/swing_span = 19.999998
 joint_constraints/twist_span = 15.0

@@ -4,6 +4,10 @@ enum Stage { BASELINE, MUZZLE, TRACER, HIT, RECOIL, DEBRIS, SOUND, FINISH }
 
 const Assets := preload("res://demo_assets.gd")
 const CASING := preload("res://casing.tscn")
+const CRACK := preload("res://sounds/crack.wav")
+const WHIZ := preload("res://sounds/whiz.wav")
+const THUD := preload("res://sounds/thud.wav")
+const PING := preload("res://sounds/ping.wav")
 const STAGE_LABELS := [
 	"Damage only", "Muzzle flash and barrel kick", "Spread, tracer and sparks",
 	"Target reaction", "Shooter and camera recoil", "Splatter and casings",
@@ -20,6 +24,7 @@ const STARTING_HP := 3
 @onready var flash: Node3D = $Muzzle/Flash
 @onready var eject: Marker3D = $Eject
 @onready var kick: Node3D = $Kick
+@onready var shooter: Plush = $Kick/Shooter
 @onready var kick_rest: Vector3 = kick.position
 @onready var barrel: MeshInstance3D = $Kick/Barrel
 @onready var barrel_rest: Vector3 = barrel.position
@@ -53,10 +58,10 @@ func _ready() -> void:
 	paint_burst = Assets.make_paint()
 	smoke = Assets.make_smoke()
 	splatter = Assets.make_splatter()
-	crack = Assets.make_sound(0.14, 210.0, 62.0, 0.68, 0.65, 31)
-	whiz = Assets.make_sound(0.12, 1320.0, 390.0, 0.12, 0.07, 71)
-	thud = Assets.make_sound(0.12, 125.0, 48.0, 0.15, 0.48, 19)
-	ping = Assets.make_sound(0.24, 1060.0, 910.0, 0.08, 0.22, 83)
+	crack = Assets.vary(CRACK)
+	whiz = Assets.vary(WHIZ)
+	thud = Assets.vary(THUD)
+	ping = Assets.vary(PING)
 	reset_range()
 
 
@@ -126,12 +131,12 @@ func fire(at_wall: bool) -> void:
 			burst(paint_burst, end, hit.normal)
 			stamp_surfaces(end, direction)
 		if stage >= Stage.SOUND:
-			play_at(thud, end)
+			play_at(thud, end, -3.0)
 	else:
 		if stage >= Stage.TRACER:
 			burst(sparks, end, hit.normal)
 		if stage >= Stage.SOUND:
-			play_at(ping, end)
+			play_at(ping, end, -6.0)
 
 
 func play_shot(origin: Vector3, end: Vector3) -> void:
@@ -162,6 +167,7 @@ func play_shot(origin: Vector3, end: Vector3) -> void:
 
 	if stage >= Stage.RECOIL:
 		kick.position = kick_rest + Vector3.BACK * 0.12
+		shooter.motion.kick()
 		camera.h_offset = 0.035
 		camera.v_offset = 0.055
 		shot_tween.tween_property(kick, "position", kick_rest, 0.13).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
@@ -171,7 +177,7 @@ func play_shot(origin: Vector3, end: Vector3) -> void:
 		eject_casing()
 	if stage >= Stage.SOUND:
 		play_at(crack, origin)
-		play_at(whiz, origin.lerp(end, 0.7))
+		play_at(whiz, origin.lerp(end, 0.7), -12.0)
 
 
 func hit_target(direction: Vector3) -> void:
@@ -185,7 +191,8 @@ func hit_target(direction: Vector3) -> void:
 		if stage < Stage.FINISH:  # Without the finishing layer the body drops where it stood.
 			target_visual.mesh.material_override = target_visual.tint  # in case a quick shot cut the flash short
 			target_visual.scale = Vector3.ONE
-			target_visual.go_limp(direction * 1.4, Vector3.UP.cross(direction) * 3.0)
+			# Roll it around the way it faces, so it lands on its side with the X eyes in view.
+			target_visual.go_limp(direction * 0.8 + Vector3.UP * 0.5, -target_visual.global_basis.z * 6.0)
 			return
 	if stage < Stage.HIT:
 		return
@@ -205,10 +212,11 @@ func hit_target(direction: Vector3) -> void:
 		hit_tween.tween_property(target_visual, "scale", Vector3.ONE, 0.13)
 		return
 
-	# Hold the struck pose, then knock the ragdoll up and over along the shot.
+	# Hold the struck pose, then knock the ragdoll up and over along the shot, cartwheeling
+	# around the way it faces so it comes down with its X eyes towards the camera.
 	hit_tween.tween_callback(func():
 		target_visual.scale = Vector3.ONE
-		target_visual.go_limp(direction * 3.2 + Vector3.UP * 3.2, Vector3.UP.cross(direction) * 14.0))
+		target_visual.go_limp(direction * 3.0 + Vector3.UP * 3.5, target_visual.global_basis.z * 10.0))
 
 
 func burst(scene: PackedScene, point: Vector3, normal: Vector3) -> void:
@@ -218,7 +226,7 @@ func burst(scene: PackedScene, point: Vector3, normal: Vector3) -> void:
 	particles.restart()
 	for part: GPUParticles3D in particles.get_children():
 		part.restart()
-	get_tree().create_timer(1.5).timeout.connect(particles.queue_free)
+	get_tree().create_timer(1.5, false).timeout.connect(particles.queue_free)
 
 
 func eject_casing() -> void:
@@ -227,7 +235,7 @@ func eject_casing() -> void:
 	casing.global_transform = eject.global_transform
 	casing.linear_velocity = muzzle.global_basis * Vector3(1.7, 1.9, 0.25)
 	casing.angular_velocity = Vector3(7.0, 3.0, 10.0)
-	get_tree().create_timer(6.0).timeout.connect(casing.queue_free)
+	get_tree().create_timer(6.0, false).timeout.connect(casing.queue_free)
 
 
 func stamp_surfaces(point: Vector3, direction: Vector3) -> void:
@@ -243,12 +251,13 @@ func stamp_surfaces(point: Vector3, direction: Vector3) -> void:
 		var normal: Vector3 = surface.normal
 		effects.add_child(decal)
 		decal.global_transform = Transform3D(Basis(Quaternion(Vector3.UP, normal)), surface.position)
-		get_tree().create_timer(12.0).timeout.connect(decal.queue_free)
+		get_tree().create_timer(12.0, false).timeout.connect(decal.queue_free)
 
 
-func play_at(stream: AudioStream, point: Vector3) -> void:
+func play_at(stream: AudioStream, point: Vector3, volume_db := 0.0) -> void:
 	var player := AudioStreamPlayer3D.new()
 	player.stream = stream
+	player.volume_db = volume_db
 	effects.add_child(player)
 	player.global_position = point
 	player.finished.connect(player.queue_free)

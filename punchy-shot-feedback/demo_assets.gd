@@ -1,7 +1,5 @@
 extends RefCounted
-## Original placeholder assets generated from text source for the tutorial demo.
-
-const SAMPLE_RATE := 22050
+## The demo's particle effects and splatter, built in code, and a pitch wrapper for its sounds.
 
 
 ## Sparks for a wall hit: hot streaks that fly along their velocity and drop, a flash at
@@ -170,25 +168,8 @@ static func make_splatter() -> Texture2D:
 	return ImageTexture.create_from_image(image)
 
 
-static func make_sound(duration: float, start_hz: float, end_hz: float, noise_mix: float,
-		level: float, seed_value: int) -> AudioStreamRandomizer:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = seed_value
-	var sample_count := roundi(duration * SAMPLE_RATE)
-	var samples := PackedByteArray()
-	samples.resize(sample_count * 2)
-	var phase := 0.0
-	for i in range(sample_count):
-		var progress := float(i) / sample_count
-		phase += TAU * lerpf(start_hz, end_hz, progress) / SAMPLE_RATE
-		var tone := sin(phase)
-		var wave := lerpf(tone, rng.randf_range(-1.0, 1.0), noise_mix)
-		var envelope := minf(float(i) / 12.0, 1.0) * pow(1.0 - progress, 3.0)
-		samples.encode_s16(i * 2, roundi(wave * envelope * level * 32767.0))
-	var clip := AudioStreamWAV.new()
-	clip.format = AudioStreamWAV.FORMAT_16_BITS
-	clip.mix_rate = SAMPLE_RATE
-	clip.data = samples
+## Wraps a recorded cue so each play comes out at a slightly different pitch.
+static func vary(clip: AudioStream) -> AudioStreamRandomizer:
 	var cue := AudioStreamRandomizer.new()
 	cue.random_pitch_semitones = 0.4
 	cue.add_stream(0, clip)

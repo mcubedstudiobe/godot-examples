@@ -612,7 +612,6 @@ mesh = SubResource("Mesh_mesa")
 
 [node name="Shooter" parent="Kick" instance=ExtResource("4_plush")]
 transform = Transform3D(-0.17365, 0, 0.98481, 0, 1, 0, -0.98481, 0, -0.17365, 0, 0, 0)
-hold_at = 0.0
 bone_turns = Dictionary[StringName, Vector3]({&"DEF-upper_arm.R": Vector3(30, 0, 20), &"DEF-upper_arm.L": Vector3(40, 0, 0)})
 
 [node name="Barrel" type="MeshInstance3D" parent="Kick"]
@@ -689,6 +688,7 @@ shape = SubResource("Shape_target")
 transform = Transform3D(0.76604, 0, 0.64279, 0, 1, 0, -0.64279, 0, 0.76604, 0, 0, 0)
 hue_shift = -0.3
 saturation = 1.5
+motion_mode = 1
 
 [node name="Health" type="Label3D" parent="Target"]
 position = Vector3(0, 1.6, 0)
