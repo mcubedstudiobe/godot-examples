@@ -39,9 +39,11 @@ func _process_modification_with_delta(delta: float) -> void:
 func _stance(skeleton: Skeleton3D, beat: float) -> void:
 	# Holds the rifle steady: a slow breath, and a flinch back and up on a shot. The rifle
 	# rides the head bone with both arms (range.gd), so the hands never leave it.
-	var breath := sin(beat * 0.125)
-	_lift(skeleton, Vector3(0.0, (breath * 0.5 + 0.5) * 0.012, -flinch * 0.03))
-	_turn(skeleton, &"DEF-head", Vector3(breath * 2.0 - flinch * 8.0, 0.0, 0.0))
+	# A slow breath would read as a frozen character in a small or dimmed shot, so it is quick
+	# and deep enough to see: about one breath every two seconds.
+	var breath := sin(beat * 0.25)
+	_lift(skeleton, Vector3(0.0, (breath * 0.5 + 0.5) * 0.016, -flinch * 0.03))
+	_turn(skeleton, &"DEF-head", Vector3(breath * 3.5 - flinch * 8.0, 0.0, 0.0))
 
 
 func _dance(skeleton: Skeleton3D, beat: float) -> void:
