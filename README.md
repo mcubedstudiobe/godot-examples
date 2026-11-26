@@ -58,6 +58,18 @@ Copy whatever helps. Our code is MIT: keep the licence notice and ship it. Third
 (characters, sounds and the like) keep their own licences, which sit next to them in each
 example; check those before you reuse an asset.
 
+## 📣 Follow M-Cubed Studio
+
+More Godot tutorials and game-dev videos from the studio behind these examples:
+
+<p align="center">
+  <a href="https://www.youtube.com/@mcubedstudiobe"><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube"></a>
+  <a href="https://www.instagram.com/mcubedstudio.be/"><img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram"></a>
+  <a href="https://www.tiktok.com/@mcubed.studio"><img src="https://img.shields.io/badge/TikTok-000000?style=for-the-badge&logo=tiktok&logoColor=white" alt="TikTok"></a>
+  <a href="https://www.facebook.com/people/M-Cubed-Studio/61596631177053/"><img src="https://img.shields.io/badge/Facebook-0866FF?style=for-the-badge&logo=facebook&logoColor=white" alt="Facebook"></a>
+  <a href="https://x.com/MCubedStudioBE"><img src="https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white" alt="X"></a>
+</p>
+
 ## Licence
 
 [MIT](LICENSE) for the code in this repository. Third-party assets are credited, with their
