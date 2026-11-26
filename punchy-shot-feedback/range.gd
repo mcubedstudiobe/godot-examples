@@ -182,8 +182,8 @@ func hit_target(direction: Vector3) -> void:
 		target.collision_layer = 0
 		if hit_tween != null:
 			hit_tween.kill()
-		if stage < Stage.FINISH:
-			# Without the finishing layer the body just drops where it stood.
+		if stage < Stage.FINISH:  # Without the finishing layer the body drops where it stood.
+			target_visual.mesh.material_override = target_visual.tint  # in case a quick shot cut the flash short
 			target_visual.scale = Vector3.ONE
 			target_visual.go_limp(direction * 1.4, Vector3.UP.cross(direction) * 3.0)
 			return
