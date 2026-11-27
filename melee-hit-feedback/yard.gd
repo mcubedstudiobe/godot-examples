@@ -28,7 +28,6 @@ const FLASH_SECONDS := 0.05
 const SQUASH := Vector3(1.13, 0.83, 1.13)
 const SHOVE_METRES := 0.12
 ## The room. Sparks along the swing and a small kick of the camera.
-const SPARK_COUNT := 26
 const CAMERA_KICK := 0.035
 ## The ear. Each hit of the combo plays the crunch a notch higher.
 const PITCH_STEP_SEMITONES := 2.0
