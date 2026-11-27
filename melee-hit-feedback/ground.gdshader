@@ -12,15 +12,17 @@ uniform vec2 yard_radius = vec2(5.8, 4.2);
 varying vec3 world_pos;
 
 float hash(vec2 p) {
-	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+	// A hash built from fract() alone: sin() on large arguments loses precision on some GPUs.
+	vec3 q = fract(vec3(p.xyx) * 0.1031);
+	q += dot(q, q.yzx + 33.33);
+	return fract((q.x + q.y) * q.z);
 }
 
+// Smooth noise from one seamless texture, so no cell edges can show at any scale.
+uniform sampler2D noise_tex : repeat_enable, filter_linear_mipmap;
+
 float noise(vec2 p) {
-	vec2 i = floor(p);
-	vec2 f = fract(p);
-	vec2 u = f * f * (3.0 - 2.0 * f);
-	return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
-			mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+	return texture(noise_tex, p * 0.125).r;
 }
 
 void vertex() {
@@ -39,8 +41,8 @@ void fragment() {
 	vec3 sand = mix(sand_b, sand_a, noise(p * 0.7) * 0.7 + noise(p * 4.0) * 0.3);
 	// Pebbles and grit.
 	vec2 cell = floor(p * 14.0);
-	float pebble = step(0.93, hash(cell)) * smoothstep(0.35, 0.1, length(fract(p * 14.0) - 0.5));
-	sand = mix(sand, vec3(0.9, 0.82, 0.7), pebble * 0.7);
+	float pebble = step(0.955, hash(cell)) * smoothstep(0.26, 0.1, length(fract(p * 14.0) - 0.5));
+	sand = mix(sand, vec3(0.74, 0.64, 0.52), pebble * 0.75);
 	// Scuffed rings of lighter sand where the fighters stand.
 	for (int i = 0; i < 2; i++) {
 		vec2 spot = vec2(i == 0 ? -1.0 : 1.0, i == 0 ? 0.3 : -0.3);
@@ -48,6 +50,20 @@ void fragment() {
 		sand = mix(sand, sand_a * 1.12, smoothstep(0.22, 0.0, ring) * 0.35 * noise(p * 6.0 + 3.0));
 		sand = mix(sand, sand_b * 0.8, smoothstep(0.55, 0.0, length(p - spot)) * 0.25);
 	}
+	// Fine detail, faded out with distance so it never shimmers: grass fibres that run away from
+	// the camera, and the grit and small clods of trodden sand.
+	float near = 1.0 - smoothstep(3.0, 13.0, length(VERTEX));
+	float fibre = noise(p * vec2(26.0, 20.0)) * 0.6 + noise(p * vec2(70.0, 52.0)) * 0.4;
+	// Blades: dark gaps between them, lit tips, and the odd flower speck.
+	float blades = noise(p * vec2(45.0, 120.0));
+	grass *= mix(1.0, 0.5 + 0.95 * fibre, near);
+	grass = mix(grass, grass * 1.35 + vec3(0.05, 0.04, 0.0), smoothstep(0.55, 0.8, blades) * near * 0.8);
+	grass = mix(grass, grass * 0.55, smoothstep(0.45, 0.2, blades) * near * 0.7);
+	float flower = step(0.992, hash(floor(p * 38.0))) * smoothstep(0.22, 0.1, length(fract(p * 38.0) - 0.5));
+	grass = mix(grass, vec3(0.95, 0.9, 0.7), flower * near * 0.85);
+	grass = mix(grass, grass * vec3(1.18, 1.12, 0.8), smoothstep(0.62, 0.9, noise(p * vec2(34.0, 6.0))) * near);
+	float grit = noise(p * 60.0) * 0.4 + noise(p * 17.0) * 0.6;
+	sand *= mix(1.0, 0.88 + 0.26 * grit, near);
 	ALBEDO = mix(grass, sand, sand_mask);
 	ROUGHNESS = mix(0.95, 0.9, sand_mask);
 	SPECULAR = 0.15;

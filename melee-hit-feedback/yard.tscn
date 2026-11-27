@@ -11,6 +11,7 @@ shader = ExtResource("5_sky")
 
 [sub_resource type="Sky" id="Sky_yard"]
 sky_material = SubResource("SkyMaterial_yard")
+radiance_size = 5
 
 [sub_resource type="Environment" id="Environment_yard"]
 background_mode = 2

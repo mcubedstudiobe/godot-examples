@@ -9,7 +9,10 @@ uniform vec3 ground : source_color = vec3(0.34, 0.24, 0.2);
 uniform vec3 sun_direction = vec3(0.5, 0.08, -0.86);
 
 float hash(vec2 p) {
-	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+	// A hash built from fract() alone: sin() on large arguments loses precision on some GPUs.
+	vec3 q = fract(vec3(p.xyx) * 0.1031);
+	q += dot(q, q.yzx + 33.33);
+	return fract((q.x + q.y) * q.z);
 }
 
 float noise(vec2 p) {
@@ -40,8 +43,10 @@ void sky() {
 	color = mix(color, top, smoothstep(0.18, 0.85, h));
 	color = mix(color, ground, smoothstep(0.0, -0.12, h));
 	color += vec3(1.0, 0.6, 0.25) * (pow(glow, 5.0) * 0.55 + pow(glow, 90.0) * 2.4);
-	if (h > 0.01) {
-		vec2 uv = d.xz / (h + 0.3) * 1.5 + vec2(TIME * 0.003, 0.0);
+	// Clouds are drawn only for the screen itself. The radiance cube map that lights and fogs the
+	// scene stays a smooth gradient, so no cube-face polygons can show through.
+	if (!AT_CUBEMAP_PASS && h > 0.01) {
+		vec2 uv = d.xz / (h + 0.3) * 1.5;
 		float c = fbm(uv * vec2(1.0, 1.8));
 		float cover = smoothstep(0.48, 0.78, c) * smoothstep(0.01, 0.12, h);
 		// Lit from below by the low sun, shaded blue-violet on top.

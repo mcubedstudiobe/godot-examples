@@ -100,6 +100,15 @@ func _ground() -> void:
 	plane.size = Vector2(160.0, 160.0)
 	var material := ShaderMaterial.new()
 	material.shader = GROUND
+	# One seamless simplex texture, made right now so the first frame already has it.
+	var simplex := FastNoiseLite.new()
+	simplex.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	simplex.frequency = 0.02
+	simplex.fractal_octaves = 3
+	simplex.seed = 11
+	var image := simplex.get_seamless_image(512, 512, false, false, 0.1, true)
+	image.generate_mipmaps()
+	material.set_shader_parameter(&"noise_tex", ImageTexture.create_from_image(image))
 	_add(plane, material, Vector3.ZERO)
 
 

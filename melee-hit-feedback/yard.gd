@@ -263,11 +263,11 @@ func knock_out(push: Vector3, finisher: bool) -> void:
 	thrown_bucket.show()
 	thrown_bucket.freeze = false
 	thrown_bucket.collision_layer = 16
-	thrown_bucket.linear_velocity = (push * 0.6 + Vector3.UP * 2.2) * big if finisher \
-			else push * 0.6 + Vector3.UP * 1.4
+	thrown_bucket.linear_velocity = (push * 0.2 + Vector3.UP * 2.2) * big if finisher \
+			else push * 0.5 + Vector3.UP * 1.4
 	thrown_bucket.angular_velocity = Vector3(7.0, 2.0, 11.0) * big
 	# Roll it around the way it faces, so it lands on its side with the X eyes in view.
-	dummy.go_limp(push * (1.3 if finisher else 0.8) + Vector3.UP * (3.0 if finisher else 0.5),
+	dummy.go_limp(push * (0.45 if finisher else 0.6) + Vector3.UP * (3.2 if finisher else 0.5),
 			-dummy.global_basis.z * (10.0 if finisher else 6.0) + Vector3.UP * 3.0)
 
 
