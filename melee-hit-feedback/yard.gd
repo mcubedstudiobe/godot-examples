@@ -223,8 +223,10 @@ func react(push: Vector3, boost: float) -> void:
 	dummy.position = dummy_rest + push * SHOVE_METRES * boost
 	dummy.scale = Vector3.ONE.lerp(SQUASH, boost)
 	var mine := epoch
-	# Real time again, so the flash is as long as it says even in the middle of a hit-stop.
-	get_tree().create_timer(FLASH_SECONDS * boost, true, false, true).timeout.connect(func():
+	# Real time again, so the flash is as long as it says even in the middle of a hit-stop. It is
+	# not process_always: pausing the game holds the flash on screen, where the hit-stop timer
+	# above must keep running through a pause.
+	get_tree().create_timer(FLASH_SECONDS * boost, false, false, true).timeout.connect(func():
 		if mine == epoch and hp > 0:
 			dummy.tint.set_shader_parameter(&"flash", 0.0))
 	hit_tween = create_tween().set_parallel()

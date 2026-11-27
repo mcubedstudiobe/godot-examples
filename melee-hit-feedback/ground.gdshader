@@ -41,8 +41,8 @@ void fragment() {
 	vec3 sand = mix(sand_b, sand_a, noise(p * 0.7) * 0.7 + noise(p * 4.0) * 0.3);
 	// Pebbles and grit.
 	vec2 cell = floor(p * 14.0);
-	float pebble = step(0.955, hash(cell)) * smoothstep(0.26, 0.1, length(fract(p * 14.0) - 0.5));
-	sand = mix(sand, vec3(0.74, 0.64, 0.52), pebble * 0.75);
+	float pebble = step(0.975, hash(cell)) * smoothstep(0.2, 0.08, length(fract(p * 14.0) - 0.5));
+	sand = mix(sand, vec3(0.66, 0.55, 0.44), pebble * 0.6);
 	// Scuffed rings of lighter sand where the fighters stand.
 	for (int i = 0; i < 2; i++) {
 		vec2 spot = vec2(i == 0 ? -1.0 : 1.0, i == 0 ? 0.3 : -0.3);
@@ -60,7 +60,7 @@ void fragment() {
 	grass = mix(grass, grass * 1.35 + vec3(0.05, 0.04, 0.0), smoothstep(0.55, 0.8, blades) * near * 0.8);
 	grass = mix(grass, grass * 0.55, smoothstep(0.45, 0.2, blades) * near * 0.7);
 	float flower = step(0.992, hash(floor(p * 38.0))) * smoothstep(0.22, 0.1, length(fract(p * 38.0) - 0.5));
-	grass = mix(grass, vec3(0.95, 0.9, 0.7), flower * near * 0.85);
+	grass = mix(grass, vec3(0.8, 0.72, 0.45), flower * near * 0.5);
 	grass = mix(grass, grass * vec3(1.18, 1.12, 0.8), smoothstep(0.62, 0.9, noise(p * vec2(34.0, 6.0))) * near);
 	float grit = noise(p * 60.0) * 0.4 + noise(p * 17.0) * 0.6;
 	sand *= mix(1.0, 0.88 + 0.26 * grit, near);
