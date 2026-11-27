@@ -269,6 +269,9 @@ func kick_camera(swing: Vector3, boost: float) -> void:
 ## The last hit: the bucket leaves and the dummy goes limp with X's for eyes. The bucket is
 ## a RigidBody3D that picks up from the worn bucket's pose.
 func knock_out(push: Vector3, finisher: bool) -> void:
+	# Stop the squash first, or it keeps scaling the body after the ragdoll takes over.
+	if hit_tween != null:
+		hit_tween.kill()
 	dummy.scale = Vector3.ONE
 	dummy.tint.set_shader_parameter(&"flash", 0.0)
 	hp_label.hide()
