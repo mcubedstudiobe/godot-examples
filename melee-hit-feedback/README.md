@@ -5,7 +5,8 @@ hour, and a three-hit combo adds one kind of hit feedback at a time: from "the h
 went down" to a finisher that sends a tin bucket spinning and the dummy tumbling with X's for
 eyes. Every hit does the same ten damage at every stage. Only what you see, feel and hear
 changes. The knight's swing is procedural, so you can retime or re-aim it without an animation
-editor, and the dummy dances until its last hit.
+editor, and the dummy reacts the way a nervous target would: it watches the knight warily, flinches
+at the wind-up, staggers when it is hit and gets dazed as its health drops, until the last hit.
 
 ## Run it
 
@@ -39,7 +40,13 @@ Each stage keeps everything below it.
 
 At every stage the third hit knocks the bucket off and turns the dummy into a ragdoll with X's
 for eyes. Below stage 5 it just falls over more gently. Pressing Space once the dummy is down
-brings it back up, squashed flat and then stretching out, dancing again.
+brings it back up, squashed flat and then stretching out, where it shakes its head and goes back
+to watching the knight warily.
+
+The dummy is never still. At every stage it breathes, blinks, shifts its weight and gives the
+knight a nervous glance now and then. From stage 2 on it also reacts to the fight: it flinches while
+the sword winds up (leans back, throws its arms up and squints), staggers when the hit lands, and
+the more it has taken the longer it takes to recover and the woozier its head gets.
 
 ## How it is built
 
@@ -47,9 +54,10 @@ brings it back up, squashed flat and then stretching out, dancing again.
 | --- | --- |
 | The combo | `strike()`, `_process()` and `resolve_hit()` in [yard.gd](yard.gd). The knight's attack runs in `_process()`; when its clock reaches the contact time, `resolve_hit()` takes the damage and switches on each layer for the current stage. Every number the layers use is a `const` at the top of the file. |
 | Hit-stop | `hit_stop()` sets `Engine.time_scale` to a crawl and waits on `get_tree().create_timer(seconds, true, false, true)`. The two `true`s are `process_always` and `ignore_time_scale`: a timer that counted scaled time would be stretched by the very slowdown it is timing, and one that stopped with the tree would hang forever if the game were paused mid-hit. An `epoch` counter lets a reset cancel a hit-stop already waiting. |
-| The swing | [plush_motion.gd](plush_motion.gd) is a `SkeletonModifier3D`. The three attacks are lists of keys (blade angles, lunge, lift, hip twist, easing) in `ATTACKS`. Each frame it aims the sword arm's bones so the blade points where the key says, with the forearm square to the blade. The swing runs on game time, so it crawls during hit-stop and holds when the tree is paused, while the breathing, blinking and dancing carry on. |
+| The swing | [plush_motion.gd](plush_motion.gd) is a `SkeletonModifier3D`. The three attacks are lists of keys (blade angles, lunge, lift, hip twist, easing) in `ATTACKS`. Each frame it aims the sword arm's bones so the blade points where the key says, with the forearm square to the blade. The swing runs on game time, so it crawls during hit-stop and holds when the tree is paused, while the breathing, blinking and the dummy's wary shifting carry on. |
 | Holding the sword | The plush's arms hang off its head bone. `dress_knight()` in [yard.gd](yard.gd) puts the sword on a `BoneAttachment3D` on the sword hand's bone, and `make_sword()` in [props.gd](props.gd) builds it in that bone's own frame, so the crossguard stays on the paw through every pose. |
 | The bucket | [props.gd](props.gd) builds a tin bucket from primitives with a noise normal map. The worn one sits tipped back on the dummy's head bone. On the last hit a `RigidBody3D` copy picks up from the worn bucket's pose and flies off, and its landing clangs. |
+| The dummy's nerves | The same `SkeletonModifier3D` runs a wary mode for the dummy. `yard.gd` tells it three things: how far into the wind-up the swing is (`threat`), a hit and which way it shoved (`hit()`) and how beaten up it is (`daze`). From those and its own clock it works out the head turn, the flinch, the stagger and the dazed wobble, with no randomness, so the same fight always looks the same. The stagger blends the plush's own `tilt_l` and `tilt_r` poses, sampled once in `plush.gd`. |
 | White flash | A `flash` uniform in [plush.gdshader](plush.gdshader) washes the whole plush to pure white. `react()` sets it and a real-time timer clears it. |
 | Squash and shove | `react()` scales and moves the dummy's root only, then tweens it back. The collision shape belongs to the stand, so it never moves. |
 | Sparks | [demo_assets.gd](demo_assets.gd) builds a one-shot `GPUParticles3D`: streaks that use **Align Y** to point along their velocity, a star flash and a few dust puffs. `burst()` aims it along the swing and gives it a fixed seed, so the same hit always sprays the same way. No turbulence, so a repeat run matches. |
@@ -57,7 +65,7 @@ brings it back up, squashed flat and then stretching out, dancing again.
 | Sound | Four short recordings, loaded with `preload()`. `resolve_hit()` sets the crunch's `pitch_scale` to a semitone step per combo hit, and `play_at()` puts each sound where it happens. |
 | Characters | Tibo's [Godot Plush Character](https://github.com/gtibo/Godot-Plush-Character). [plush.gd](plush.gd) holds one pose of its `idle` animation and tints one. The model imports at 1.3 m (Root Scale in the import settings), so no physics body is ever scaled. |
 | Eyes | Both eyes sample one square of the plush texture, so [plush.gdshader](plush.gdshader) can redraw it: a lid of body colour for a blink, or a white eye with a black X once the dummy is down. |
-| Ragdoll | [dummy.tscn](dummy.tscn) adds a `PhysicalBoneSimulator3D` named `Ragdoll` under the plush's `Skeleton3D`, with ten `PhysicalBone3D` bodies on their own physics layer. `stand()` keeps the simulator off while the dummy dances, because physics bodies cannot take a squash; `go_limp()` turns the dance off, clears the bone scales and hands every body the same push and spin so the whole plush leaves the ground together. |
+| Ragdoll | [dummy.tscn](dummy.tscn) adds a `PhysicalBoneSimulator3D` named `Ragdoll` under the plush's `Skeleton3D`, with ten `PhysicalBone3D` bodies on their own physics layer. `stand()` keeps the simulator off while the dummy stands, because physics bodies cannot take a squash; `go_limp()` turns its motion off, clears the bone scales and hands every body the same push and spin so the whole plush leaves the ground together. |
 | The yard | [scenery.gd](scenery.gd) builds the walls, towers, fence, hay, banners and props from primitives, with small procedural shaders ([sky.gdshader](sky.gdshader), [ground.gdshader](ground.gdshader), [stone.gdshader](stone.gdshader), [hay.gdshader](hay.gdshader), [banner.gdshader](banner.gdshader)). [yard.tscn](yard.tscn) holds the lights, fog and camera. |
 
 Two details that are easy to miss:

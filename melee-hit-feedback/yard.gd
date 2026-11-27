@@ -34,6 +34,11 @@ const PITCH_STEP_SEMITONES := 2.0
 const CRUNCH_DB := -3.0
 ## The finisher. The last hit of the combo multiplies all of the above.
 const FINISHER_MULTIPLIER := 2.0
+## The target's nerves (from the target stage on). It flinches over the first part of the
+## wind-up, staggers on a hit, and each hit of the combo staggers it a little more.
+const FLINCH_SECONDS := 0.18
+const STAGGER := 0.6
+const STAGGER_GROWTH := 0.25
 
 @export var stage: Stage = Stage.FINISH
 ## Where the camera looks. Its position is the camera node's own.
@@ -80,6 +85,8 @@ func _ready() -> void:
 	var to_knight := (knight.global_position - dummy.global_position).normalized()
 	var to_camera := (camera.global_position - dummy.global_position) * Vector3(1.0, 0.0, 1.0)
 	face(dummy, to_knight + to_camera.normalized())
+	# ...and its head turns the rest of the way, to watch the knight.
+	dummy.motion.watch_yaw = rad_to_deg(wrapf(atan2(to_knight.x, to_knight.z) - dummy.rotation.y, -PI, PI))
 	dress_knight()
 	wear_bucket()
 	reset_yard()
@@ -144,6 +151,9 @@ func strike() -> void:
 
 func _process(delta: float) -> void:
 	clang_gap += delta
+	# The dummy flinches while the sword winds up, and lets go the moment it lands.
+	var winding := stage >= Stage.TARGET and attack >= 0 and not landed and hp > 0
+	dummy.motion.threat = clampf(attack_time / FLINCH_SECONDS, 0.0, 1.0) if winding else 0.0
 	if attack < 0:
 		return
 	attack_time += delta
@@ -222,6 +232,11 @@ func react(push: Vector3, boost: float) -> void:
 	dummy.tint.set_shader_parameter(&"flash", 1.0)
 	dummy.position = dummy_rest + push * SHOVE_METRES * boost
 	dummy.scale = Vector3.ONE.lerp(SQUASH, boost)
+	if hp > 0:
+		# Then it staggers, leaning the way it was shoved, and the more it has taken the longer it
+		# takes to recover.
+		dummy.motion.daze = 1.0 - float(hp) / STARTING_HP
+		dummy.motion.hit(STAGGER + STAGGER_GROWTH * (hits - 1), push.dot(dummy.global_basis.x))
 	var mine := epoch
 	# Real time again, so the flash is as long as it says even in the middle of a hit-stop. It is
 	# not process_always: pausing the game holds the flash on screen, where the hit-stop timer
@@ -305,8 +320,10 @@ func reset_yard() -> void:
 		pop_up()
 
 
-## A downed dummy springs back up, squashed flat and then stretching out, dancing again.
+## A downed dummy springs back up, squashed flat and then stretching out, shakes its head and
+## goes back to watching the knight warily.
 func pop_up() -> void:
+	dummy.motion.shake()
 	dummy.scale = Vector3(1.35, 0.05, 1.35)
 	worn_bucket.rotation_degrees.x = Props.BUCKET_TIP - 50.0
 	hit_tween = create_tween().set_parallel()

@@ -1,16 +1,22 @@
 class_name PlushMotion
 extends SkeletonModifier3D
 ## Keeps a plush alive on top of its held pose: a guarding, breathing knight who swings a
-## sword, a dancing dummy, and blinking for both. A SkeletonModifier3D only adds to the pose
-## for this frame, so the held pose underneath never drifts. Plush switches it off when the
-## ragdoll takes over.
+## sword, a wary dummy who reacts to the swing, and blinking for both. A SkeletonModifier3D only
+## adds to the pose for this frame, so the held pose underneath never drifts. Plush switches it
+## off when the ragdoll takes over.
 ##
 ## The knight's swing is procedural. yard.gd says which of the three attacks is running and
 ## how many seconds of it have passed; this node turns that into arm bones every frame, so
 ## the swing slows down with Engine.time_scale (hit-stop) and holds when the game pauses,
 ## while the breathing and the blinking carry on.
+##
+## The dummy is wary, never frozen. It watches the knight, shifts its weight and glances away
+## now and then; flinches while the sword winds up; staggers when it lands, leaning into the
+## plush's own tilt poses; and gets woozier as its health drops. Every reaction is a pure
+## function of what yard.gd tells it (the swing phase, the hit, the health) and of its own
+## clock, with no randomness, so the same game state always looks the same.
 
-enum Mode { GUARD, DANCE }
+enum Mode { GUARD, WARY }
 
 ## One attack is a list of keys: [seconds, alpha, beta, lunge, lift, twist, ease].
 ## The blade points alpha degrees from straight up towards the front (90 is level) and beta
@@ -52,6 +58,22 @@ var blink := 0.0
 var attack := -1
 var attack_time := 0.0
 
+## The wary dummy, set by yard.gd.
+## Degrees the knight stands to the dummy's side of the way it faces.
+var watch_yaw := 0.0
+## 0 to 1: how far into the knight's wind-up the swing is (0 when no swing is coming).
+var threat := 0.0
+## 0 to 1: how beaten up it is. Slows the recovery and adds the woozy tilt.
+var daze := 0.0
+## The plush's tilt_l and tilt_r poses: a rotation per bone and the hips' position, sampled once.
+var tilts := {}
+var threat_now := 0.0
+var hit_time := 99.0
+var hit_amount := 0.0
+var hit_side := 1.0
+var shake_time := 99.0
+var squint := 0.0
+
 
 ## Seconds into an attack at which the blade meets the target.
 static func contact_time(index: int) -> float:
@@ -84,8 +106,8 @@ func _process_modification_with_delta(delta: float) -> void:
 	time += delta
 	var skeleton := get_skeleton()
 	var beat := time * tempo / 60.0 * TAU
-	if mode == Mode.DANCE:
-		_dance(skeleton, beat)
+	if mode == Mode.WARY:
+		_wary(skeleton, delta)
 	else:
 		_knight(skeleton, beat)
 	_blink(delta)
@@ -135,22 +157,82 @@ func _off_arm(skeleton: Skeleton3D, breath: float) -> void:
 	_frame(skeleton, &"DEF-hand.L", forearm, Vector3.RIGHT)
 
 
-func _dance(skeleton: Skeleton3D, beat: float) -> void:
-	# Bounce on the beat, sway and twist on the bar, arms up and pumping in turn, knees lifting.
-	var bounce := absf(sin(beat * 0.5))
-	var sway := sin(beat * 0.25)
-	var pump := sin(beat * 0.5)
-	_lift(skeleton, Vector3(0.0, bounce * 0.07, 0.0))
-	_turn(skeleton, &"DEF-hips", Vector3(0.0, sway * 25.0, sway * 12.0))
-	_turn(skeleton, &"DEF-head", Vector3(bounce * 8.0, 0.0, -sway * 8.0))
-	_turn(skeleton, &"DEF-upper_arm.L", Vector3(0.0, 0.0, 75.0 + pump * 50.0))
-	_turn(skeleton, &"DEF-forearm.L", Vector3(0.0, 0.0, 40.0 + pump * 35.0))
-	_turn(skeleton, &"DEF-upper_arm.R", Vector3(0.0, 0.0, -75.0 + pump * 50.0))
-	_turn(skeleton, &"DEF-forearm.R", Vector3(0.0, 0.0, -40.0 + pump * 35.0))
-	_turn(skeleton, &"DEF-thigh.L", Vector3(maxf(pump, 0.0) * -40.0, 0.0, 0.0))
-	_turn(skeleton, &"DEF-shin.L", Vector3(maxf(pump, 0.0) * 50.0, 0.0, 0.0))
-	_turn(skeleton, &"DEF-thigh.R", Vector3(maxf(-pump, 0.0) * -40.0, 0.0, 0.0))
-	_turn(skeleton, &"DEF-shin.R", Vector3(maxf(-pump, 0.0) * 50.0, 0.0, 0.0))
+## A hit has landed: stagger by `amount` (1 is a full lean into a tilt pose), leaning to `side`
+## (positive to the plush's left).
+func hit(amount: float, side: float) -> void:
+	hit_time = 0.0
+	hit_amount = amount
+	hit_side = 1.0 if side >= 0.0 else -1.0
+
+
+## Shake it off: a quick head shake that dies away, then back to watching the knight.
+func shake() -> void:
+	shake_time = 0.0
+
+
+## Forget every reaction (a reset): the wary stance, nothing in progress.
+func calm() -> void:
+	threat = 0.0
+	threat_now = 0.0
+	hit_time = 99.0
+	shake_time = 99.0
+	daze = 0.0
+
+
+func _wary(skeleton: Skeleton3D, delta: float) -> void:
+	threat_now = move_toward(threat_now, threat, delta * 8.0)
+	hit_time += delta
+	shake_time += delta
+	var breath := sin(time * 3.0)
+	var sway := sin(time * 0.9)
+	# A stagger: the plush's tilt poses, alternating, shrinking as the wobble settles. A dazed
+	# plush takes longer to settle and wobbles more slowly.
+	var settle := 1.0 / (0.3 + 0.5 * daze)
+	var envelope := hit_amount * exp(-hit_time * settle)
+	var wobble := envelope * cos(hit_time * TAU * (2.7 - 1.1 * daze)) * hit_side
+	_tilt(skeleton, wobble * 0.8)
+	# The first instant of a hit throws the head back and the arms out.
+	var jolt := hit_amount * exp(-hit_time * 9.0)
+	var flail := hit_amount * exp(-hit_time * 5.0)
+	# Wary: weight shifts from foot to foot, and every few seconds a nervous glance away.
+	var glance := maxf(_pulse(5.3, 2.9, 0.8), _pulse(8.9, 6.1, 0.7))
+	var calm_ness := 1.0 - threat_now
+	var look := watch_yaw * (0.85 + 0.15 * threat_now) - glance * (watch_yaw * 0.9 + 10.0) * calm_ness
+	look += sin(time * 11.0) * (0.8 + 4.0 * threat_now)
+	if shake_time < 1.0:
+		look += sin(shake_time * TAU * 3.5) * 24.0 * (1.0 - shake_time)
+	var woozy := daze * sin(time * 2.3)
+	_lift(skeleton, Vector3(sway * 0.008, (breath * 0.5 + 0.5) * 0.012, 0.0))
+	_turn(skeleton, &"DEF-hips", Vector3(-threat_now * 14.0 - jolt * 10.0, watch_yaw * 0.3 + daze * 6.0 * sin(time * 1.7), sway * 2.5))
+	_turn(skeleton, &"DEF-head", Vector3(breath * 2.5 - threat_now * 8.0 - jolt * 22.0 + daze * 4.0 * sin(time * 1.4),
+			look - watch_yaw * 0.3, -wobble * 12.0 + daze * 12.0 + woozy * 12.0))
+	# Arms: up and bent across the face against the swing, flung out by the hit.
+	var arms := threat_now * 70.0 + flail * 45.0
+	var elbows := threat_now * 95.0 + flail * 20.0
+	_turn(skeleton, &"DEF-upper_arm.L", Vector3(0.0, 0.0, arms))
+	_turn(skeleton, &"DEF-upper_arm.R", Vector3(0.0, 0.0, -arms))
+	_turn(skeleton, &"DEF-forearm.L", Vector3(0.0, 0.0, elbows))
+	_turn(skeleton, &"DEF-forearm.R", Vector3(0.0, 0.0, -elbows))
+	squint = threat_now * 0.85
+
+
+## A smooth 0 to 1 pulse: `length` seconds long, starting `start` seconds into every `period`.
+func _pulse(period: float, start: float, length: float) -> float:
+	var at := fmod(time, period) - start
+	if at < 0.0 or at > length:
+		return 0.0
+	return pow(sin(PI * at / length), 2.0)
+
+
+## Blend the bones towards the plush's tilt_l pose (positive weight) or its tilt_r pose (negative).
+func _tilt(skeleton: Skeleton3D, weight: float) -> void:
+	if tilts.is_empty() or absf(weight) < 0.001:
+		return
+	var pose: Dictionary = tilts[&"l" if weight > 0.0 else &"r"]
+	var w := minf(absf(weight), 1.0)
+	for i in skeleton.get_bone_count():
+		skeleton.set_bone_pose_rotation(i, skeleton.get_bone_pose_rotation(i).slerp(pose.rotations[i], w))
+	skeleton.set_bone_pose_position(0, skeleton.get_bone_pose_position(0).lerp(pose.hips, w))
 
 
 func _blink(delta: float) -> void:
@@ -160,7 +242,7 @@ func _blink(delta: float) -> void:
 		next_blink = 2.2 + fmod(time * 7.31, 1.6)
 	blink = move_toward(blink, 0.0, delta * 7.0)
 	if material != null:
-		material.set_shader_parameter(&"blink", blink)
+		material.set_shader_parameter(&"blink", maxf(blink, squint))
 
 
 ## The values between two keys of an attack at this time, eased.

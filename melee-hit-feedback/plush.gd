@@ -35,8 +35,21 @@ func _ready() -> void:
 	mesh.material_override = tint
 	motion.mode = motion_mode
 	motion.material = tint
+	motion.tilts = {&"l": sample_pose(&"tilt_l"), &"r": sample_pose(&"tilt_r")}
 	skeleton.add_child(motion)
 	stand()
+
+
+## The pose of one animation's first frame: a rotation per bone and the hips' position.
+func sample_pose(clip: StringName) -> Dictionary:
+	player.play(clip)
+	player.seek(0.0, true)
+	player.advance(0.0)
+	player.pause()
+	var rotations: Array[Quaternion] = []
+	for bone in skeleton.get_bone_count():
+		rotations.append(skeleton.get_bone_pose_rotation(bone))
+	return {"rotations": rotations, "hips": skeleton.get_bone_pose_position(0)}
 
 
 ## Back on its feet: stop the ragdoll and restart the pose.
@@ -49,6 +62,7 @@ func stand() -> void:
 	player.play(&"idle")
 	player.seek(hold_at, true)
 	player.pause()
+	motion.calm()
 	motion.active = true
 	tint.set_shader_parameter(&"dead", 0.0)
 
