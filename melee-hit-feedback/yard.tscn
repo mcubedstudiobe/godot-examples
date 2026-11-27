@@ -1,0 +1,157 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://yard.gd" id="1_yard"]
+[ext_resource type="Script" path="res://scenery.gd" id="2_scenery"]
+[ext_resource type="PackedScene" path="res://plush.tscn" id="3_plush"]
+[ext_resource type="PackedScene" path="res://dummy.tscn" id="4_dummy"]
+[ext_resource type="Shader" path="res://sky.gdshader" id="5_sky"]
+
+[sub_resource type="ShaderMaterial" id="SkyMaterial_yard"]
+shader = ExtResource("5_sky")
+
+[sub_resource type="Sky" id="Sky_yard"]
+sky_material = SubResource("SkyMaterial_yard")
+radiance_size = 5
+
+[sub_resource type="Environment" id="Environment_yard"]
+background_mode = 2
+sky = SubResource("Sky_yard")
+ambient_light_source = 3
+ambient_light_energy = 0.75
+tonemap_mode = 3
+tonemap_white = 6.0
+ssao_enabled = true
+ssao_radius = 0.9
+ssao_intensity = 1.6
+glow_enabled = true
+glow_intensity = 0.6
+glow_strength = 1.0
+glow_bloom = 0.03
+glow_hdr_threshold = 1.0
+glow_blend_mode = 1
+fog_enabled = true
+fog_light_color = Color(1, 0.74, 0.5, 1)
+fog_density = 0.007
+fog_sky_affect = 0.2
+fog_aerial_perspective = 0.2
+adjustment_enabled = true
+adjustment_saturation = 1.12
+adjustment_contrast = 1.05
+
+[sub_resource type="BoxShape3D" id="Shape_ground"]
+size = Vector3(80, 0.4, 80)
+
+[sub_resource type="CylinderShape3D" id="Shape_stand"]
+height = 0.18
+radius = 0.52
+
+[sub_resource type="CylinderShape3D" id="Shape_bucket"]
+height = 0.42
+radius = 0.36
+
+[sub_resource type="PhysicsMaterial" id="Physics_bucket"]
+friction = 0.5
+bounce = 0.55
+
+[node name="Yard" type="Node3D"]
+script = ExtResource("1_yard")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_yard")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.9, 4.6)
+current = true
+fov = 42.0
+
+[node name="Key" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8, 0.31, -0.51, 0, 0.85, 0.52, 0.6, -0.42, 0.68, 0, 0, 0)
+light_color = Color(1, 0.78, 0.5, 1)
+light_energy = 2.0
+light_angular_distance = 1.2
+light_shadow_enabled = true
+shadow_blur = 1.4
+directional_shadow_max_distance = 40.0
+
+[node name="Rim" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.9, 0.15, -0.4, 0, 0.94, 0.34, 0.43, 0.31, -0.85, 0, 0, 0)
+light_color = Color(0.7, 0.82, 1, 1)
+light_energy = 1.1
+light_specular = 1.6
+sky_mode = 1
+
+[node name="Ground" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.2, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("Shape_ground")
+
+[node name="Scenery" type="Node3D" parent="."]
+script = ExtResource("2_scenery")
+
+[node name="Knight" parent="." instance=ExtResource("3_plush")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0, 0.3)
+
+[node name="Stand" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0, -0.3)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stand"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, 0)
+shape = SubResource("Shape_stand")
+
+[node name="Dummy" parent="Stand" instance=ExtResource("4_dummy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.18, 0)
+hue_shift = 0.48
+saturation = 0.8
+motion_mode = 1
+
+[node name="Health" type="Label3D" parent="Stand"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.05, 0)
+billboard = 1
+no_depth_test = true
+fixed_size = false
+pixel_size = 0.004
+text = "30"
+font_size = 96
+outline_size = 24
+
+[node name="Bucket" type="RigidBody3D" parent="."]
+visible = false
+collision_layer = 0
+collision_mask = 1
+mass = 0.6
+physics_material_override = SubResource("Physics_bucket")
+freeze = true
+contact_monitor = true
+max_contacts_reported = 4
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Bucket"]
+shape = SubResource("Shape_bucket")
+
+[node name="Effects" type="Node3D" parent="."]
+
+[node name="Guide" type="CanvasLayer" parent="."]
+
+[node name="Stage" type="Label" parent="Guide"]
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 900.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 26
+theme_override_constants/outline_size = 8
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+text = "5 · The finisher"
+
+[node name="Keys" type="Label" parent="Guide"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -86.0
+offset_right = 1200.0
+offset_bottom = -18.0
+theme_override_font_sizes/font_size = 20
+theme_override_constants/outline_size = 8
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+text = "Space  swing (once it is down, Space stands it up)
+0-5  pick a stage and reset     R  reset     H  hide this guide"
