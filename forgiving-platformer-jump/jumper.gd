@@ -64,6 +64,10 @@ func physics_step(input: InputFrame, delta: float) -> void:
 	if cheats.variable_height and input.jump_released:
 		if velocity.y > 0.0:
 			velocity.y *= JUMP_CUT
+	# A tap that was let go while still falling and then buffered: the jump it fires is a hop too.
+	# The release was handled while the character could not rise, so it is applied once here.
+	if cheats.variable_height and jump_kind == "buffer" and not input.jump_held and velocity.y == JUMP_SPEED:
+		velocity.y *= JUMP_CUT
 
 	var gravity := GRAVITY
 	if cheats.fall_gravity and velocity.y < 0.0:

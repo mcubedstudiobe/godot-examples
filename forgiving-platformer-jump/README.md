@@ -54,7 +54,7 @@ same input frames, the ghost.
 | The cheats | [jumper.gd](jumper.gd) is an axis-locked `CharacterBody3D` (it never leaves its lane). `physics_step()` reads an input frame and applies the cheats that are on. Every number is a `const` at the top: `COYOTE_SECONDS`, `BUFFER_SECONDS`, `JUMP_CUT`, `FALL_GRAVITY_MULTIPLIER`, and the run speed, jump speed and gravity they modify. |
 | Coyote time | `coyote_left` refills while the body is on the floor and runs down in the air; `can_jump` is true on the floor or while `cheats.coyote` and `coyote_left` is above zero. |
 | Jump buffer | `buffer_left` refills on every press and runs down; `wants_jump` is a press this tick or, with `cheats.buffer`, a press still remembered. The jump fires when `wants_jump` and `can_jump` meet. |
-| Variable height | On `input.jump_released` while moving up, `velocity.y *= JUMP_CUT`. |
+| Variable height | On `input.jump_released` while moving up, `velocity.y *= JUMP_CUT`. A buffered jump whose button was already let go when it fires (a tap released in the air) is cut once as it starts, so a tap stays a hop. |
 | Fall faster | `gravity *= FALL_GRAVITY_MULTIPLIER` while `velocity.y` is negative. |
 | Which cheats are on | [cheats.gd](cheats.gd): four booleans, and `for_stage()` switches them on one by one. |
 | One input, two plush | [input_frame.gd](input_frame.gd) holds one tick of input (move, jump pressed, held, released). [table.gd](table.gd) builds it once per physics tick, from the keyboard or the scripted run, and gives the same frame to the player and to the ghost in a lane behind it, a metre to the side so the two never hide each other. The ghost's platforms are a shifted copy of the player's, on another physics layer. |

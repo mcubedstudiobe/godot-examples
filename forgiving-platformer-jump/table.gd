@@ -39,7 +39,8 @@ class Rider extends RefCounted:
 	var lane_z := 0.0
 	var lane_x := 0.0
 	var sunk := false
-	var sunk_time := 0.0
+	var sunk_time := 0.0 ## the sunk plush's animation clock; it keeps running while the game is held
+	var sunk_wait := 0.0 ## how long it has sat in the cocoa as gameplay time, which a pause freezes
 	var sunk_from := 0.0
 	var sunk_yaw := 0.0
 	var marshmallow: Node3D
@@ -336,6 +337,7 @@ func reset_ledge() -> void:
 		var was_sunk := rider.sunk
 		rider.sunk = false
 		rider.sunk_time = 0.0
+		rider.sunk_wait = 0.0
 		if rider.marshmallow != null:
 			rider.marshmallow.queue_free()
 			rider.marshmallow = null
@@ -532,6 +534,7 @@ func _will_land(body: Jumper, lane_x: float) -> bool:
 func _sink(rider: Rider) -> void:
 	rider.sunk = true
 	rider.sunk_time = 0.0
+	rider.sunk_wait = 0.0
 	var body := rider.body
 	body.velocity = Vector3.ZERO
 	rider.sunk_from = rider.plush.global_position.y
@@ -585,6 +588,8 @@ func _animate_sunk(rider: Rider, delta: float) -> void:
 	if not rider.sunk:
 		return
 	rider.sunk_time += delta
+	if not get_tree().paused:
+		rider.sunk_wait += delta
 	var t := rider.sunk_time
 	var float_y := Course.LAKE_Y - SINK_DEPTH
 	var dive := 1.0 - exp(-t * 8.0)
@@ -620,10 +625,10 @@ func _drop_marshmallow(rider: Rider) -> void:
 func _pop_back() -> void:
 	if not auto_pop:
 		return
-	if player.sunk and player.sunk_time > POP_BACK_SECONDS:
+	if player.sunk and player.sunk_wait > POP_BACK_SECONDS:
 		reset_ledge()
 		return
-	if ghost.sunk and ghost.sunk_time > POP_BACK_SECONDS and player.body.is_on_floor() and not player.sunk:
+	if ghost.sunk and ghost.sunk_wait > POP_BACK_SECONDS and player.body.is_on_floor() and not player.sunk:
 		var rider := ghost
 		rider.sunk = false
 		rider.marshmallow.queue_free()
