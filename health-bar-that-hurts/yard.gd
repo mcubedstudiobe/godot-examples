@@ -87,6 +87,9 @@ func _ready() -> void:
 	scenery = $Scenery
 	effects = $Effects
 	plush_rest = plush.position
+	var pause_keys := PauseKeys.new()
+	pause_keys.yard = self
+	add_child(pause_keys)
 	_world()
 	_hud()
 	bonk_effect = Effects.make_bonk()
