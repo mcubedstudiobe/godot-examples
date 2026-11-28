@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://dojo.gd" id="1_dojo"]
+[ext_resource type="Script" path="res://scenery.gd" id="2_scenery"]
+[ext_resource type="Script" path="res://popups.gd" id="3_popups"]
+[ext_resource type="Script" path="res://pause_keys.gd" id="4_pause"]
+[ext_resource type="PackedScene" path="res://plush.tscn" id="5_plush"]
+
+[node name="Dojo" type="Node3D"]
+script = ExtResource("1_dojo")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 1.45, 5.0)
+current = true
+fov = 36.0
+
+[node name="Scenery" type="Node3D" parent="."]
+script = ExtResource("2_scenery")
+
+[node name="Fighter" parent="." instance=ExtResource("5_plush")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0, 0)
+hue_shift = 0.7
+
+[node name="Victim" parent="." instance=ExtResource("5_plush")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0, 0)
+motion_mode = 1
+
+[node name="Popups" type="Node3D" parent="."]
+script = ExtResource("3_popups")
+
+[node name="Effects" type="Node3D" parent="."]
+
+[node name="PauseKeys" type="Node" parent="." node_paths=PackedStringArray("yard")]
+script = ExtResource("4_pause")
+yard = NodePath("..")
+
+[node name="Guide" type="CanvasLayer" parent="."]
+
+[node name="Stage" type="Label" parent="Guide"]
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 800.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 30
+
+[node name="Keys" type="Label" parent="Guide"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -150.0
+offset_right = 900.0
+offset_bottom = -18.0
+theme_override_font_sizes/font_size = 22
+text = "Space  next hit        C  a crit        F  a flurry of ten
+0-4  pick the layer        R  reset        P  pause        H  hide this"
