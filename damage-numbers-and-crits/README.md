@@ -32,7 +32,7 @@ Each layer keeps everything below it. Layer 0 is the plain label every game star
 | 1 Size | `scale_for()` maps the damage to the label's scale, between `MIN_SCALE` at `SMALL_HIT` and `MAX_SCALE` at `BIG_HIT`. |
 | 2 Burst | The number starts `BURST_START` times too big and snaps to size in `BURST_SECONDS`, holds for `HOLD_SECONDS`, then drifts up `DRIFT_METRES` and fades. |
 | 3 Scatter | Each number is nudged up to `SPREAD_METRES` to either side from a seeded `RandomNumberGenerator`, so a flurry stays readable and every run is identical. |
-| 4 Crit | A crit gets `CRIT_COLOUR`, a thick `CRIT_OUTLINE_SIZE` outline, a bigger `CRIT_BURST_START`, a star behind it, a camera tremor and a sharper squeak. |
+| 4 Crit | A crit gets `CRIT_COLOUR`, a thick `CRIT_OUTLINE_SIZE` outline, a bigger `CRIT_BURST_START`, a star behind it, a short `CRIT_DRIFT_METRES` float, a camera tremor and a sharper squeak. |
 
 ## How it is built
 

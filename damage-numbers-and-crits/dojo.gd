@@ -47,7 +47,7 @@ const TREMOR_HZ := 46.0
 const TREMOR_SECONDS := 0.4
 ## Where a number appears: this far above the head and this far towards the fighter, so the biggest
 ## ones stay in frame.
-const POPUP_LIFT := 0.62
+const POPUP_LIFT := 0.55
 const POPUP_TOWARDS_FIGHTER := 0.3
 ## A crit number is the biggest, so it slides further towards the fighter to stay in frame.
 const CRIT_POPUP_TOWARDS_FIGHTER := 0.55

@@ -37,7 +37,7 @@ const MAX_SCALE := 1.15
 const BURST_START := 2.6
 const BURST_SECONDS := 0.1
 const HOLD_SECONDS := 0.28
-const DRIFT_METRES := 0.85
+const DRIFT_METRES := 0.55
 const DRIFT_SECONDS := 0.65
 
 ## SCATTER: a random distance to either side, in metres. The seed makes every run identical.
@@ -54,6 +54,8 @@ const CRIT_OUTLINE_SIZE := 80
 const CRIT_SCALE := 1.45
 const CRIT_BURST_START := 2.2
 const CRIT_HOLD_SECONDS := 0.5
+## A crit number is the biggest, so it drifts less: it must not float out of the frame while it fades.
+const CRIT_DRIFT_METRES := 0.35
 const CRIT_STAR_SCALE := 1.6
 
 var layer := Layer.CRIT
@@ -154,7 +156,7 @@ func spawn(origin: Vector3, damage: int, crit: bool, side: Vector3) -> void:
 				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	# Hold, then float up and fade out together.
 	tween.tween_interval(hold)
-	tween.tween_property(label, "position:y", label.position.y + DRIFT_METRES, DRIFT_SECONDS) \
+	tween.tween_property(label, "position:y", label.position.y + (CRIT_DRIFT_METRES if shouts else DRIFT_METRES), DRIFT_SECONDS) \
 			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.parallel().tween_property(label, "modulate:a", 0.0, DRIFT_SECONDS)
 	tween.parallel().tween_property(label, "outline_modulate:a", 0.0, DRIFT_SECONDS)
