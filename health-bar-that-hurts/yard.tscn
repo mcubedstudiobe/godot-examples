@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://yard.gd" id="1_yard"]
+[ext_resource type="Script" path="res://scenery.gd" id="2_scenery"]
+[ext_resource type="Script" path="res://machine.gd" id="3_machine"]
+[ext_resource type="PackedScene" path="res://plush.tscn" id="4_plush"]
+
+[node name="Yard" type="Node3D"]
+script = ExtResource("1_yard")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1.4, 5.2)
+current = true
+fov = 34.0
+
+[node name="Scenery" type="Node3D" parent="."]
+script = ExtResource("2_scenery")
+
+[node name="Plush" parent="." instance=ExtResource("4_plush")]
+hue_shift = 0.0
+
+[node name="Machine" type="Node3D" parent="."]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, -1.25, 0, 1.5)
+script = ExtResource("3_machine")
+
+[node name="Effects" type="Node3D" parent="."]
