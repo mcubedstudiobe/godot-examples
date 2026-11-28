@@ -104,7 +104,8 @@ func _ready() -> void:
 ## The plush looks half at the camera and half at the machine, so its face is always in view.
 func face_the_yard() -> void:
 	var to_machine := (machine.global_position - plush.global_position) * Vector3(1.0, 0.0, 1.0)
-	var to_camera := (camera.global_position - plush.global_position) * Vector3(1.0, 0.0, 1.0)
+	# Towards where the player looks from, a fixed spot, so the plush faces the same way for any camera.
+	var to_camera := Vector3(-0.5, 0.0, 5.2)
 	plush.rotation.y = atan2(to_machine.x + to_camera.x * 1.4, to_machine.z + to_camera.z * 1.4)
 	plush.motion.watch_yaw = rad_to_deg(wrapf(atan2(to_machine.x, to_machine.z) - plush.rotation.y, -PI, PI))
 
