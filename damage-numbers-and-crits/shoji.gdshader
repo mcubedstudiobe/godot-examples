@@ -29,7 +29,7 @@ void fragment() {
 	float y = metres.y;
 	float frame = 0.0;
 	frame = max(frame, 1.0 - smoothstep(0.034, 0.038, min(px, panel_width - px)));
-	frame = max(frame, 1.0 - smoothstep(size.y - 0.07, size.y - 0.066, size.y - y));
+	frame = max(frame, 1.0 - smoothstep(0.066, 0.07, size.y - y));
 	frame = max(frame, 1.0 - smoothstep(board_height - 0.003, board_height + 0.003, y));
 	float bars = 0.0;
 	bars = max(bars, bar(metres.x - 0.0, panel_width / 4.0, 0.03));
