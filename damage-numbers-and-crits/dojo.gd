@@ -49,6 +49,8 @@ const TREMOR_SECONDS := 0.4
 ## ones stay in frame.
 const POPUP_LIFT := 0.62
 const POPUP_TOWARDS_FIGHTER := 0.3
+## A crit number is the biggest, so it slides further towards the fighter to stay in frame.
+const CRIT_POPUP_TOWARDS_FIGHTER := 0.55
 ## The sounds.
 const SQUEAK_DB := -3.0
 const CRIT_SQUEAK_DB := 1.5
@@ -257,7 +259,8 @@ func resolve_hit(damage: int, crit: bool) -> void:
 	# The damage number: above the victim's head, on the camera's side so nothing hides it.
 	var side := camera.global_basis.x
 	side.y = 0.0
-	popups.spawn(victim.head_point() + Vector3(0.0, POPUP_LIFT, 0.0) - push * POPUP_TOWARDS_FIGHTER, damage, crit, side)
+	var pull := CRIT_POPUP_TOWARDS_FIGHTER if crit else POPUP_TOWARDS_FIGHTER
+	popups.spawn(victim.head_point() + Vector3(0.0, POPUP_LIFT, 0.0) - push * pull, damage, crit, side)
 	if crit and popups.is_crit_layer():
 		play(CRIT_SQUEAK, CRIT_SQUEAK_DB)
 		tremor_time = 0.0

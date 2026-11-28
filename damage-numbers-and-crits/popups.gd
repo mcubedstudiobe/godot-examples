@@ -51,8 +51,8 @@ const NORMAL_OUTLINE_SIZE := 28
 const CRIT_COLOUR := Color(1.0, 0.86, 0.1)
 const CRIT_OUTLINE_COLOUR := Color(0.78, 0.04, 0.02)
 const CRIT_OUTLINE_SIZE := 80
-const CRIT_SCALE := 1.55
-const CRIT_BURST_START := 3.0
+const CRIT_SCALE := 1.45
+const CRIT_BURST_START := 2.2
 const CRIT_HOLD_SECONDS := 0.5
 const CRIT_STAR_SCALE := 1.6
 
