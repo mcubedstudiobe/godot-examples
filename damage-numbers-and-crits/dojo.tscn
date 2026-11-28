@@ -18,11 +18,11 @@ fov = 36.0
 script = ExtResource("2_scenery")
 
 [node name="Fighter" parent="." instance=ExtResource("5_plush")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0, -0.35)
 hue_shift = 0.7
 
 [node name="Victim" parent="." instance=ExtResource("5_plush")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 0.35)
 motion_mode = 1
 
 [node name="Popups" type="Node3D" parent="."]

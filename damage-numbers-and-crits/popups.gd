@@ -54,7 +54,7 @@ const CRIT_OUTLINE_SIZE := 80
 const CRIT_SCALE := 1.55
 const CRIT_BURST_START := 3.0
 const CRIT_HOLD_SECONDS := 0.5
-const CRIT_STAR_SCALE := 1.9
+const CRIT_STAR_SCALE := 1.6
 
 var layer := Layer.CRIT
 var pool: Array[Label3D] = []

@@ -229,11 +229,12 @@ func _alcove() -> void:
 func _ceiling() -> void:
 	var deck := _box(Vector3(WALL_WIDTH, 0.1, 12.0), _plain(Color(0.14, 0.09, 0.06), 0.8), Vector3(0.0, CEILING + 0.05, 2.0))
 	deck.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var beam_wood := _plain(Color(0.17, 0.105, 0.065), 0.6)
 	for x in range(-8, 9, 2):
-		_box(Vector3(0.2, 0.26, 12.0), _timber(2, 30.0), Vector3(x, CEILING - 0.13, 2.0)) \
+		_box(Vector3(0.2, 0.26, 12.0), beam_wood, Vector3(x, CEILING - 0.13, 2.0)) \
 				.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	for z in [-2.6, 0.2, 3.0]:
-		_box(Vector3(WALL_WIDTH, 0.22, 0.2), _timber(0, 30.0), Vector3(0.0, CEILING - 0.11, z)) \
+		_box(Vector3(WALL_WIDTH, 0.22, 0.2), beam_wood, Vector3(0.0, CEILING - 0.11, z)) \
 				.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 

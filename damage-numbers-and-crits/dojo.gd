@@ -48,7 +48,7 @@ const TREMOR_SECONDS := 0.4
 ## Where a number appears: this far above the head and this far towards the fighter, so the biggest
 ## ones stay in frame.
 const POPUP_LIFT := 0.62
-const POPUP_TOWARDS_FIGHTER := 0.4
+const POPUP_TOWARDS_FIGHTER := 0.3
 ## The sounds.
 const SQUEAK_DB := -3.0
 const CRIT_SQUEAK_DB := 1.5
@@ -56,6 +56,8 @@ const THUMP_DB := -4.0
 const WHOOSH_DB := -9.0
 ## How much each plush turns towards the camera, in degrees.
 const TURN_TO_CAMERA := 22.0
+## The victim turns further, so it shows its face while the fighter stands behind it.
+const VICTIM_TURN_TO_CAMERA := 50.0
 
 @export var stage: DamagePopups.Layer = DamagePopups.Layer.CRIT
 @export var look_at_point := Vector3(0.0, 1.0, 0.0)
@@ -99,7 +101,7 @@ func _ready() -> void:
 	burst = Effects.make_crit_burst()
 	# Each plush faces the other, turned a little towards the camera so faces stay in view.
 	face(fighter, victim.global_position - fighter.global_position, -TURN_TO_CAMERA)
-	face(victim, fighter.global_position - victim.global_position, TURN_TO_CAMERA)
+	face(victim, fighter.global_position - victim.global_position, VICTIM_TURN_TO_CAMERA)
 	var to_fighter := (fighter.global_position - victim.global_position).normalized()
 	victim.motion.watch_yaw = rad_to_deg(wrapf(atan2(to_fighter.x, to_fighter.z) - victim.rotation.y, -PI, PI))
 	dress_fighter()

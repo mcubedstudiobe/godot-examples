@@ -23,29 +23,29 @@ enum Attack { LIGHT, HIT, HEAVY, CRIT, JAB_LEFT, JAB_RIGHT }
 ## way in from the previous key: above 1 starts slowly and ends fast. The third key is the contact.
 const ATTACKS := {
 	# A small flick of the wrist.
-	Attack.LIGHT: [[0.0, 14.0, -6.0, 0.0, 0.0, 0.0, 1.0],
+	Attack.LIGHT: [[0.0, -30.0, -35.0, 0.0, 0.0, 0.0, 1.0],
 		[0.16, 20.0, 6.0, -0.02, 0.0, -6.0, 0.5],
 		[0.26, 48.0, 14.0, 0.24, 0.0, 8.0, 3.0],
 		[0.38, 66.0, 16.0, 0.14, 0.0, 10.0, 0.5],
-		[0.66, 14.0, -6.0, 0.0, 0.0, 0.0, -2.0]],
+		[0.66, -30.0, -35.0, 0.0, 0.0, 0.0, -2.0]],
 	# A straight chop from above.
-	Attack.HIT: [[0.0, 14.0, -6.0, 0.0, 0.0, 0.0, 1.0],
+	Attack.HIT: [[0.0, -30.0, -35.0, 0.0, 0.0, 0.0, 1.0],
 		[0.22, -35.0, -12.0, -0.04, 0.03, -10.0, 0.4],
 		[0.30, 44.0, 19.0, 0.32, 0.0, 14.0, 3.0],
 		[0.40, 64.0, 22.0, 0.22, -0.02, 18.0, 0.4],
-		[0.84, 14.0, -6.0, 0.0, 0.0, 0.0, -2.0]],
+		[0.84, -30.0, -35.0, 0.0, 0.0, 0.0, -2.0]],
 	# A big wind-up behind the back, a hop and a slam.
-	Attack.HEAVY: [[0.0, 14.0, -6.0, 0.0, 0.0, 0.0, 1.0],
+	Attack.HEAVY: [[0.0, -30.0, -35.0, 0.0, 0.0, 0.0, 1.0],
 		[0.36, -62.0, 0.0, -0.1, 0.16, -14.0, 0.45],
 		[0.46, 40.0, 19.0, 0.42, 0.0, 16.0, 3.5],
 		[0.60, 70.0, 22.0, 0.32, -0.03, 22.0, 0.4],
-		[1.24, 14.0, -6.0, 0.0, 0.0, 0.0, -2.0]],
+		[1.24, -30.0, -35.0, 0.0, 0.0, 0.0, -2.0]],
 	# The crit: a huge wind-up that spins the chicken all the way round, then the hardest slam.
-	Attack.CRIT: [[0.0, 14.0, -6.0, 0.0, 0.0, 0.0, 1.0],
+	Attack.CRIT: [[0.0, -30.0, -35.0, 0.0, 0.0, 0.0, 1.0],
 		[0.30, -84.0, -24.0, -0.14, 0.2, -26.0, 0.45],
 		[0.62, 36.0, 26.0, 0.48, 0.04, 26.0, 4.0],
 		[0.80, 74.0, 30.0, 0.38, -0.04, 30.0, 0.4],
-		[1.50, 14.0, -6.0, 0.0, 0.0, 0.0, -2.0]],
+		[1.50, -30.0, -35.0, 0.0, 0.0, 0.0, -2.0]],
 	# The flurry: short, quick whacks from either side.
 	Attack.JAB_LEFT: [[0.0, 40.0, 10.0, 0.0, 0.0, 0.0, 1.0],
 		[0.07, 50.0, 66.0, -0.02, 0.0, -14.0, 0.5],
@@ -58,7 +58,11 @@ const ATTACKS := {
 		[0.2, 62.0, 52.0, 0.2, 0.0, -2.0, 0.5],
 		[0.3, 40.0, 10.0, 0.0, 0.0, 0.0, -1.5]],
 }
-const BLADE_GUARD := Vector2(14.0, -6.0)
+## Between swings the chicken rests over the fighter's right shoulder, so its face stays in view.
+const BLADE_GUARD := Vector2(-30.0, -35.0)
+## How fast the fighter goes from that rest into a swing, and back out of it, per second.
+const ENGAGE_RATE := 20.0
+const DISENGAGE_RATE := 4.0
 ## The fighter's weight bounces on its toes at this many beats a minute.
 const BOUNCE_BPM := 116.0
 ## The victim's guard: the fists stay up by its chin.
@@ -76,6 +80,11 @@ var blink := 0.0
 ## The fighter: the attack in progress (-1 for none) and the seconds of it that have run.
 var attack := -1
 var attack_time := 0.0
+## Degrees to the fighter's left that the victim stands from the way it faces, so every swing is aimed at it.
+var aim := 0.0
+## 0 to 1: how far the fighter has left its resting pose, and the last swing pose it was in.
+var engaged := 0.0
+var last_pose := Vector2.ZERO
 ## The victim: degrees the fighter stands to its side of the way it faces.
 var watch_yaw := 0.0
 ## 0 to 1: how far into the fighter's wind-up the swing is (0 when no swing is coming).
@@ -127,14 +136,15 @@ func _process_modification_with_delta(delta: float) -> void:
 	if mode == Mode.VICTIM:
 		_victim(skeleton, delta)
 	else:
-		_fighter(skeleton)
+		_fighter(skeleton, delta)
 	_blink(delta)
 
 
-func _fighter(skeleton: Skeleton3D) -> void:
+func _fighter(skeleton: Skeleton3D, delta: float) -> void:
 	var beat := time * BOUNCE_BPM / 60.0 * TAU
 	var breath := sin(beat * 0.25)
 	var bounce := (sin(beat) * 0.5 + 0.5)
+	engaged = move_toward(engaged, 1.0 if attack >= 0 else 0.0, delta * (ENGAGE_RATE if attack >= 0 else DISENGAGE_RATE))
 	var alpha := BLADE_GUARD.x + breath * 1.5
 	var beta := BLADE_GUARD.y
 	var lunge := 0.0
@@ -142,15 +152,19 @@ func _fighter(skeleton: Skeleton3D) -> void:
 	var twist := 0.0
 	if attack >= 0:
 		var key := _sample(ATTACKS[attack], attack_time)
-		alpha = key[0]
-		beta = key[1]
+		last_pose = Vector2(key[0], key[1] + aim)
+		alpha = lerpf(alpha, last_pose.x, engaged)
+		beta = lerpf(beta, last_pose.y, engaged)
 		lunge = key[2]
 		lift = key[3]
 		twist = key[4]
+	elif engaged > 0.0:
+		alpha = lerpf(alpha, last_pose.x, engaged)
+		beta = lerpf(beta, last_pose.y, engaged)
 	# The body: a bouncy breath at rest, and the hips driving the swing.
 	_lift(skeleton, Vector3(0.0, bounce * 0.03 * (1.0 if attack < 0 else 0.3) + lift, lunge))
 	_turn(skeleton, &"DEF-hips", Vector3(0.0, twist, sin(beat * 0.5) * 1.5))
-	_turn(skeleton, &"DEF-head", Vector3(breath * 3.5 + lunge * 20.0, -twist * 0.3, 0.0))
+	_turn(skeleton, &"DEF-head", Vector3(breath * 3.5 + lunge * 20.0, -twist * 0.3 + aim * 0.35, 0.0))
 	_chicken_arm(skeleton, deg_to_rad(alpha), deg_to_rad(beta))
 	_fist_arm(skeleton, &"L", breath, 0.0)
 

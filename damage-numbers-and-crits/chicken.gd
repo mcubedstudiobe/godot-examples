@@ -8,14 +8,14 @@ extends Node3D
 ## body, drooping under gravity, and the neck is a smooth curve from the body to that point, so a
 ## fast swing makes the head whip behind the body and flop forward again.
 
-const YELLOW := Color("#ffe45c")
-const ORANGE := Color("#f3a21c")
-const RED := Color("#d92b2b")
+const YELLOW := Color("#ffe000")
+const ORANGE := Color("#ff8c00")
+const RED := Color("#e8262a")
 
 ## Where the neck leaves the body, and how long it is, in the hand bone's frame.
 const NECK_BASE := Vector3(1.12, 0.02, 0.0)
 const NECK_LENGTH := 0.62
-const NECK_SEGMENTS := 7
+const NECK_SEGMENTS := 14
 ## How hard the spring pulls the head to its resting place, how much it is damped, and how far
 ## the resting place droops.
 const SPRING := 140.0
@@ -205,6 +205,9 @@ func _rubber(color: Color) -> StandardMaterial3D:
 	material.clearcoat = 0.55
 	material.clearcoat_roughness = 0.2
 	material.rim_enabled = true
+	material.emission_enabled = true
+	material.emission = color
+	material.emission_energy_multiplier = 0.2
 	material.rim = 0.25
 	material.rim_tint = 0.6
 	return material
