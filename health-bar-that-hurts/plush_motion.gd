@@ -10,9 +10,9 @@ extends SkeletonModifier3D
 ## randomness, so the same game state always looks the same.
 
 ## How far the plush sinks behind the fort when it is fully ducked, in metres.
-const DROP := 0.55
-## How far the middle of the head goes down for a full duck: the sink plus the squash.
-const HEAD_DROP := 0.72
+const DROP := 0.47
+## How far the middle of the head goes down for a full duck.
+const HEAD_DROP := 0.47
 ## It starts to duck this long after the machine winds up, and ducks at this speed (heights per second).
 const REACT_SECONDS := 0.2
 const DUCK_RATE := 2.4
@@ -23,7 +23,7 @@ const RUB_START := 0.55
 const RUB_SECONDS := 1.5
 
 ## 0 is ducked right down, 1 is standing tall.
-var height := 0.93
+var height := 0.86
 ## Seconds since the machine began its wind-up (negative when nothing is coming).
 var alarm := -1.0
 var clear := -1.0
@@ -99,7 +99,7 @@ func calm() -> void:
 	hit_time = 99.0
 	shake_time = 99.0
 	daze = 0.0
-	height = 0.93
+	height = 0.86
 
 
 func _process_modification_with_delta(delta: float) -> void:
@@ -115,7 +115,7 @@ func _think(delta: float) -> void:
 	fear = move_toward(fear, fear_goal, delta * 1.5)
 	ko = move_toward(ko, ko_goal, delta * 3.2)
 	cower = move_toward(cower, 0.0, delta * 0.7)
-	var peek := (0.93 + 0.05 * sin(time * 0.8) + 0.04 * sin(time * 2.1)) * (1.0 - 0.16 * fear)
+	var peek := (0.86 + 0.05 * sin(time * 0.8) + 0.04 * sin(time * 2.1)) * (1.0 - 0.16 * fear)
 	var target := peek
 	if alarm >= 0.0:
 		alarm += delta
@@ -163,13 +163,11 @@ func _pose(skeleton: Skeleton3D) -> void:
 	var woozy := (daze + (1.0 if hit_time < STAGGER_SECONDS else 0.0) * 0.4) * sin(time * 2.7)
 	# Body: sunk behind the cushions by how ducked it is, leaning in when it peeks.
 	var lean := -ducked * 6.0 - ko * 30.0
-	# Ducking squashes it into a hunched blob as well as sinking it.
-	skeleton.set_bone_pose_scale(0, Vector3(1.0 + 0.25 * ducked, 1.0 - 0.45 * ducked, 1.0 + 0.25 * ducked))
-	_lift(skeleton, Vector3(sway * 0.006 + tremble.x * 0.012, \
-			-ducked * DROP + (breath * 0.5 + 0.5) * 0.012 + thump * 0.02 + tremble.y * 0.008 - ko * 0.1 - jolt * 0.04,
+	_lift(skeleton, Vector3(sway * 0.006 + tremble.x * 0.03, \
+			-ducked * DROP + (breath * 0.5 + 0.5) * 0.012 + thump * 0.02 + tremble.y * 0.016 - ko * 0.1 - jolt * 0.04,
 			-ko * 0.12 + ducked * -0.08))
 	_turn(skeleton, &"DEF-hips", Vector3(lean - alert * 8.0 - jolt * 12.0, watch_yaw * 0.2 + daze * 6.0 * sin(time * 1.7),
-			sway * 2.0 + tremble.z * 3.0 + ko * 14.0))
+			sway * 2.0 + tremble.z * 6.0 + ko * 14.0))
 	_turn(skeleton, &"DEF-head", Vector3(breath * 2.0 + ducked * 20.0 - jolt * 24.0 - ko * 26.0 + tremble.x * 1.5,
 			look - watch_yaw * 0.2 + tremble.y * 2.0 - ko * 14.0, -wobble * 11.0 + woozy * 10.0 + ko * 28.0 + tremble.z * 2.0))
 	# Arms. Peeking, the hands grip the top of the wall; alarmed, they fly up across the face;
@@ -177,8 +175,8 @@ func _pose(skeleton: Skeleton3D) -> void:
 	# sore spot on the head; out cold, they hang.
 	var rub := _rub()
 	var grip := (1.0 - alert) * (1.0 - cower) * (1.0 - ko) * (1.0 - rub * 0.0)
-	var up := alert * 70.0 + flail * 55.0 + fear * 26.0
-	var elbow := alert * 100.0 + flail * 20.0 + fear * 52.0
+	var up := alert * 128.0 + flail * 55.0 + fear * 26.0
+	var elbow := alert * 60.0 + flail * 20.0 + fear * 52.0
 	var shake_a := tremble.x * 6.0 * fear
 	_turn(skeleton, &"DEF-upper_arm.L", Vector3(grip * -34.0 + ko * -20.0, grip * 16.0, up * (1.0 - ko) + shake_a))
 	_turn(skeleton, &"DEF-upper_arm.R", Vector3(grip * -34.0 + ko * -20.0, grip * -16.0, -up * (1.0 - ko) - shake_a))
@@ -186,7 +184,7 @@ func _pose(skeleton: Skeleton3D) -> void:
 	_turn(skeleton, &"DEF-forearm.R", Vector3(grip * -20.0, 0.0, -elbow * (1.0 - ko)))
 	if rub > 0.0:
 		_rub_arm(skeleton, rub)
-	squint = maxf(alert * 0.8, maxf(hit_amount * exp(-hit_time * 2.0) * 0.9, 0.0)) * (1.0 - ko)
+	squint = maxf(hit_amount * exp(-hit_time * 2.0) * 0.9, 0.0) * (1.0 - ko)
 
 
 ## How much the plush is rubbing its head: 0 to 1, in the seconds after the stagger.
@@ -230,6 +228,8 @@ func _blink(delta: float) -> void:
 	if material != null:
 		material.set_shader_parameter(&"blink", maxf(blink, squint))
 		material.set_shader_parameter(&"wide", wide * (1.0 - squint))
+		var worried := clampf(maxf(fear * 0.9, (1.0 - height) * 0.6), 0.0, 1.0) * (1.0 - ko)
+		material.set_shader_parameter(&"worry", worried * 0.75)
 
 
 func _turn(skeleton: Skeleton3D, bone: StringName, degrees: Vector3) -> void:

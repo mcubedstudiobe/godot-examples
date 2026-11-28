@@ -21,8 +21,8 @@ void vertex() {
 void fragment() {
 	vec3 p = normalize(obj);
 	float fuzz = hash31(floor(p * 140.0)) * 0.6 + hash31(floor(p * 55.0)) * 0.4;
-	vec3 felt = mix(vec3(0.62, 0.78, 0.10), vec3(0.86, 0.95, 0.22), fuzz);
-	float seam = 1.0 - smoothstep(0.045, 0.075, seam_distance(p));
+	vec3 felt = mix(vec3(0.34, 0.55, 0.0), vec3(0.55, 0.78, 0.0), fuzz);
+	float seam = 1.0 - smoothstep(0.06, 0.09, seam_distance(p));
 	vec3 colour = mix(felt, vec3(0.93, 0.95, 0.88), seam);
 	ALBEDO = colour;
 	ROUGHNESS = 0.95;

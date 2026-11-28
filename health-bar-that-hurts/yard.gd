@@ -26,10 +26,10 @@ const LOB_WIND_UP_SECONDS := 0.6
 const LOB_FLIGHT_SECONDS := 0.55
 const QUICK_WIND_UP_SECONDS := 0.24
 const QUICK_FLIGHT_SECONDS := 0.24
-const BALL_RADIUS := 0.09
+const BALL_RADIUS := 0.11
 const MAX_BALLS := 16
 ## How close a ball has to come to the middle of the plush's head to bonk it.
-const HEAD_RADIUS := 0.55
+const HEAD_RADIUS := 0.5
 ## The plush: how hard a bonk staggers it, and how hard the camera kicks.
 const STAGGER := 0.9
 const SQUASH := Vector3(1.14, 0.84, 1.14)
@@ -95,14 +95,18 @@ func _ready() -> void:
 	sweat = Effects.make_sweat()
 	sweat.position = Vector3(0.0, 0.35, 0.0)
 	plush.head_bone.add_child(sweat)
-	# The plush looks half at the camera and half at the machine, so its face is always in view.
+	face_the_yard()
+	hud.heartbeat.connect(_on_heartbeat)
+	stage = stage
+	reset_yard()
+
+
+## The plush looks half at the camera and half at the machine, so its face is always in view.
+func face_the_yard() -> void:
 	var to_machine := (machine.global_position - plush.global_position) * Vector3(1.0, 0.0, 1.0)
 	var to_camera := (camera.global_position - plush.global_position) * Vector3(1.0, 0.0, 1.0)
 	plush.rotation.y = atan2(to_machine.x + to_camera.x * 1.4, to_machine.z + to_camera.z * 1.4)
 	plush.motion.watch_yaw = rad_to_deg(wrapf(atan2(to_machine.x, to_machine.z) - plush.rotation.y, -PI, PI))
-	hud.heartbeat.connect(_on_heartbeat)
-	stage = stage
-	reset_yard()
 
 
 ## The sky, the sun and the air.
@@ -282,6 +286,7 @@ func _launch() -> void:
 	ball.linear_velocity = (to - from - 0.5 * gravity * seconds * seconds) / seconds
 	ball.angular_velocity = Vector3(0.0, 0.0, -18.0).rotated(Vector3.UP, machine.rotation.y)
 	ball.set_meta(&"flying", throw_kind == Throw.QUICK)
+	ball.get_node("Trail").emitting = true
 	ball.set_meta(&"lob", throw_kind == Throw.LOB)
 	play_at(THUNK, from, 0.0)
 	machine.fire()
@@ -311,6 +316,9 @@ func _make_ball() -> RigidBody3D:
 	shape.shape = sphere
 	ball.add_child(shape)
 	ball.add_child(Machine.make_ball(BALL_RADIUS))
+	var trail := Effects.make_trail()
+	trail.name = "Trail"
+	ball.add_child(trail)
 	ball.body_entered.connect(_on_ball_touched.bind(ball))
 	effects.add_child(ball)
 	balls.append(ball)
@@ -342,11 +350,20 @@ func _bonk(ball: RigidBody3D, head: Vector3) -> void:
 	var back := Vector3(away.x, 0.0, away.z).normalized()
 	ball.linear_velocity = (back * 2.6 + Vector3(-0.8, 3.6, 1.0)) * (1.0 + 0.12 * hits)
 	ball.angular_velocity = Vector3(11.0, 4.0, -9.0)
+	_squash_ball(ball)
 	_squash()
 	_kick_camera(ball.linear_velocity.normalized())
 	plush.motion.hit(STAGGER, -side)
 	if hp <= 0.0:
 		knock_out()
+
+
+## The ball flattens against the plush for a moment, then springs back round.
+func _squash_ball(ball: RigidBody3D) -> void:
+	var felt := ball.get_child(1) as Node3D
+	felt.scale = Vector3(1.55, 0.5, 1.55)
+	var tween := create_tween()
+	tween.tween_property(felt, "scale", Vector3.ONE, 0.22).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
 
 func knock_out() -> void:
@@ -384,6 +401,7 @@ func _on_heartbeat() -> void:
 ## A ball touched something: the cushions thump and squash, the lawn bounces.
 func _on_ball_touched(body: Node, ball: RigidBody3D) -> void:
 	var speed := ball.linear_velocity.length()
+	ball.get_node("Trail").emitting = false
 	if body in scenery.cushions:
 		if speed < 1.0:
 			return

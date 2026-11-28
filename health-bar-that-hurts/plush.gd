@@ -8,7 +8,7 @@ const ALBEDO := preload("res://plush/godot_plush_albedo.png")
 const NORMAL := preload("res://plush/godot_plush_normal.png")
 
 ## How much bigger than the model it is drawn: the plush is the star of the yard.
-const SCALE := 1.5
+const SCALE := 1.3
 
 ## Colour wheel turn for the body (0 keeps the Godot blue).
 @export var hue_shift := 0.0

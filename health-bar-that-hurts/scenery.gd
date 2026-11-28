@@ -226,10 +226,10 @@ func _fort() -> void:
 	_blanket()
 
 
-## A yellow gingham blanket thrown over the towers, sagging between them, with a scalloped
+## A red gingham blanket thrown over the towers, sagging between them, with a scalloped
 ## hem along the front and sides, and the same blanket hanging down the back.
 func _blanket() -> void:
-	var material := _fabric(Color(0.98, 0.78, 0.2), Color(1.0, 0.97, 0.9), 1, 5.5, 0.0)
+	var material := _fabric(Color(0.83, 0.17, 0.2), Color(1.0, 0.97, 0.93), 1, 5.5, 0.0)
 	var width := 3.9
 	var back := -1.0
 	var front := ROOF_FRONT

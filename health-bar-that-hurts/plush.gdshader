@@ -1,7 +1,7 @@
 shader_type spatial;
 // The Godot Plush Character's own shader (Tibo, MIT, github.com/gtibo/Godot-Plush-Character)
 // with a few additions: hue_shift turns the plush's blue around the colour wheel, blink closes
-// the eyes, wide opens them, dead redraws them as X's, and flash washes the plush to white.
+// the eyes, wide opens them, worry slants a lid over them, dead redraws them as X's, and flash washes the plush to white.
 
 
 uniform sampler2D albedo_texture : source_color, repeat_disable;
@@ -11,6 +11,7 @@ uniform float saturation = 1.0;
 uniform float brightness = 1.0;
 uniform float blink = 0.0; // 0 open, 1 closed
 uniform float wide = 0.0; // 1 opens the eyes wide
+uniform float worry = 0.0; // 1 lowers a slanted lid over each eye: a worried face
 uniform float dead = 0.0; // 1 draws X's for eyes
 uniform float flash = 0.0; // 1 is pure white
 
@@ -43,6 +44,9 @@ vec3 eye(vec2 uv, vec3 color) {
 		// Sample the eye from closer in, so it looks bigger.
 		vec2 s = EYE_CENTER + q * (1.0 - 0.2 * wide) * EYE_HALF;
 		color = texture(albedo_texture, s).rgb;
+	}
+	if (worry > 0.0 && q.y + 0.55 * q.x > 1.15 - 1.0 * worry) {
+		return texture(albedo_texture, vec2(0.01, 0.01)).rgb;
 	}
 	if (q.y < -1.0 + 2.2 * blink) {
 		// The eyelid: the plush's own fabric from a plain corner of the texture.
