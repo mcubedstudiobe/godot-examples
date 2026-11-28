@@ -154,8 +154,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		stage = (key - KEY_0) as DamagePopups.Layer
 		reset_dojo()
 	elif key == KEY_SPACE:
-		strike(CYCLE[cycle_index % CYCLE.size()])
-		cycle_index += 1
+		# The cycle moves on only when the swing was accepted, so mashing Space during a swing
+		# does not skip a step of normal, heavy, light.
+		if strike(CYCLE[cycle_index % CYCLE.size()]):
+			cycle_index += 1
 	elif key == KEY_C:
 		strike(Kind.CRIT)
 	elif key == KEY_F:
@@ -187,13 +189,13 @@ func busy() -> bool:
 
 
 ## Swing for one hit, or queue a flurry. A strike while the fighter is busy is ignored, and once
-## the victim is down the next one stands it back up.
-func strike(kind: Kind) -> void:
+## the victim is down the next one stands it back up. Returns true only when a swing was queued.
+func strike(kind: Kind) -> bool:
 	if hp <= 0:
 		reset_dojo()
-		return
+		return false
 	if busy():
-		return
+		return false
 	match kind:
 		Kind.LIGHT:
 			queue.append([PlushMotion.Attack.LIGHT, DAMAGE[Kind.LIGHT], false])
@@ -208,6 +210,7 @@ func strike(kind: Kind) -> void:
 			for i in FLURRY_DAMAGE.size():
 				var jab := PlushMotion.Attack.JAB_LEFT if i % 2 == 0 else PlushMotion.Attack.JAB_RIGHT
 				queue.append([jab, FLURRY_DAMAGE[i], false])
+	return true
 
 
 func _process(delta: float) -> void:
